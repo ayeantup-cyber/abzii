@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Blu-Co — BluComet.Work</title>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Blu-Co"/>
+<meta name="theme-color" content="#02030a"/>
+<meta name="description" content="Blu-Co — Audio Notes & World Words Field System by BluComet.Work"/>
+<link rel="manifest" href="/manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════
+   THEME SYSTEM — 3 MODES
+══════════════════════════════════════════ */
+:root {
+  --cyan:#00f2ff; --cyan-glow:rgba(0,242,255,0.6);
+  --purple:#9d5fff; --purple-glow:rgba(157,95,255,0.5);
+  --gold:#FFD166; --danger:#ff3a5c; --green:#00ff88;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+[data-theme="dark"]{
+  --bg:#02030a; --bg-card:rgba(5,10,20,0.80); --bg-sub:rgba(3,6,14,0.9);
+  --text:#e0f8ff; --text-dim:#5a8a9f; --border:rgba(0,242,255,0.13);
+  --accent:#00f2ff; --accent-glow:rgba(0,242,255,0.55);
+  --tab-bg:rgba(2,3,10,0.97); --input-bg:rgba(0,10,20,0.6);
+  --scrollbar:rgba(0,242,255,0.15);
+}
+[data-theme="light"]{
+  --bg:#f4f6fb; --bg-card:rgba(255,255,255,0.92); --bg-sub:rgba(235,240,250,0.95);
+  --text:#141820; --text-dim:#6b7a99; --border:rgba(100,120,180,0.18);
+  --accent:#5a2fd4; --accent-glow:rgba(90,47,212,0.35);
+  --tab-bg:rgba(244,246,251,0.97); --input-bg:rgba(255,255,255,0.8);
+  --scrollbar:rgba(90,47,212,0.2);
+}
+[data-theme="cyber"]{
+  --bg:#000508; --bg-card:rgba(0,8,14,0.92); --bg-sub:rgba(0,5,10,0.97);
+  --text:#e8fff0; --text-dim:#2e7a55; --border:rgba(0,255,136,0.15);
+  --accent:#00ff88; --accent-glow:rgba(0,255,136,0.6);
+  --tab-bg:rgba(0,5,8,0.98); --input-bg:rgba(0,10,6,0.7);
+  --scrollbar:rgba(0,255,136,0.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Share Tech Mono',monospace;
+  color:var(--text); background:var(--bg);
+  min-height:100vh; overflow-x:hidden;
+  padding-top:var(--safe-top); padding-bottom:var(--safe-bot);
+  transition:background 0.3s,color 0.3s;
+}
+#globalCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:0;transition:opacity 1s ease;pointer-events:none;}
+#globalCanvas.active{opacity:1;}
+
+/* INSTALL BANNER */
+.installBanner{display:none;position:fixed;bottom:calc(16px + var(--safe-bot));left:50%;transform:translateX(-50%);background:rgba(2,5,15,0.97);border:1px solid var(--accent);border-radius:16px;padding:14px 18px;max-width:360px;width:calc(100% - 32px);z-index:400;box-shadow:0 0 40px var(--accent-glow);backdrop-filter:blur(20px);}
+.installBanner.show{display:flex;align-items:center;gap:14px;}
+.installText{flex:1;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:1.5px;color:var(--text);line-height:1.5;}
+.installText span{display:block;font-size:9px;color:var(--text-dim);margin-top:2px;}
+.installBtns{display:flex;gap:6px;flex-shrink:0;}
+
+/* FULLSCREEN VIZ */
+#fullVizOverlay{display:none;position:fixed;inset:0;background:rgba(2,3,10,0.97);z-index:200;flex-direction:column;align-items:center;justify-content:center;}
+#fullVizOverlay.open{display:flex;}
+#fullVizCanvas{width:100%;height:100%;position:absolute;top:0;left:0;}
+.fullVizClose{position:absolute;top:calc(20px + var(--safe-top));right:20px;z-index:201;background:rgba(0,242,255,0.1);border:1px solid var(--accent);color:var(--accent);font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;padding:8px 14px;}
+
+/* HEADER */
+.header{text-align:center;padding:22px 10px 6px;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:5px;position:relative;z-index:1;}
+.header-title{font-size:22px;color:var(--accent);text-shadow:0 0 24px var(--accent-glow),0 0 60px var(--accent-glow);letter-spacing:8px;}
+.header-sub{display:block;font-size:8px;font-weight:400;letter-spacing:5px;color:var(--text-dim);margin-top:4px;}
+.header-domain{display:block;font-size:7px;letter-spacing:4px;color:var(--text-dim);opacity:0.5;margin-top:2px;}
+
+/* THEME ROW */
+.themeRow{display:flex;justify-content:center;gap:6px;padding:8px 10px 4px;position:relative;z-index:1;}
+.themeBtn{padding:4px 11px;background:transparent;border:1px solid var(--border);border-radius:20px;color:var(--text-dim);font-family:'Orbitron',sans-serif;font-size:7px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
+.themeBtn:hover,.themeBtn.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 10px var(--accent-glow);}
+
+/* TAB BAR */
+.tabBar{display:flex;position:sticky;top:0;z-index:50;background:var(--tab-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 4px;padding-top:4px;overflow-x:auto;}
+.tabBtn{flex:1;min-width:60px;padding:12px 4px 10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:'Orbitron',sans-serif;font-size:7.5px;letter-spacing:1.5px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.tabBtn:hover{color:var(--accent);}
+.tabBtn.active{color:var(--accent);border-bottom-color:var(--accent);text-shadow:0 0 12px var(--accent-glow);}
+#tab-sentlab{display:none;}
+#tab-sentlab.visible{display:flex;}
+
+/* PANELS */
+.panel{display:none;position:relative;z-index:1;}
+.panel.active{display:block;}
+.container{max-width:900px;margin:0 auto;padding:14px;}
+
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:14px;backdrop-filter:blur(16px);box-shadow:0 0 30px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.04);margin-bottom:12px;transition:background 0.3s,border 0.3s;}
+
+/* AUDIO CARD */
+.audioCard{position:relative;overflow:hidden;}
+#audioCanvas{position:absolute;bottom:0;left:0;width:100%;height:100%;opacity:0.55;pointer-events:none;border-radius:14px;}
+.audioCardInner{position:relative;z-index:2;}
+.loopRing{position:absolute;top:14px;right:14px;width:10px;height:10px;border-radius:50%;border:2px solid rgba(0,242,255,0.2);transition:all 0.3s;z-index:3;}
+.loopRing.active{border-color:var(--accent);box-shadow:0 0 10px var(--accent-glow);animation:pulse 1.5s infinite;}
+.audioLabel{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;}
+input[type="file"]{width:100%;padding:8px;border:1px dashed rgba(0,242,255,0.25);border-radius:8px;background:rgba(0,242,255,0.03);color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;}
+.seekWrapper{position:relative;margin-top:12px;height:36px;display:flex;align-items:center;}
+input[type="range"]{width:100%;accent-color:var(--accent);position:relative;z-index:2;background:transparent;}
+.timeLabel{font-size:10px;color:var(--text-dim);margin-top:4px;}
+
+/* BUTTONS */
+.controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+button{padding:8px 13px;border:none;border-radius:8px;background:var(--accent);color:#001018;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:bold;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+button:hover{filter:brightness(1.2);transform:translateY(-1px);}
+button:active{transform:translateY(0);}
+button.ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+button.ghost:hover{border-color:var(--accent);color:var(--accent);}
+button.danger{background:var(--danger);color:#fff;}
+button.gold{background:var(--gold);color:#1a0e00;}
+button.active-btn{background:rgba(0,242,255,0.12);border:1px solid var(--accent);color:var(--accent);}
+
+/* SECTION LABELS */
+.sectionLabel{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--text-dim);margin-bottom:4px;}
+
+/* INPUTS */
+input[type="text"],input[type="password"],textarea{display:block;width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;transition:border 0.2s,background 0.3s;margin-top:10px;}
+input[type="text"]:focus,input[type="password"]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow);}
+textarea{height:130px;resize:vertical;}
+select{padding:6px 10px;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;cursor:pointer;transition:border 0.2s;}
+select:focus{border-color:var(--accent);}
+
+/* ACTION BAR */
+.actionBar{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg-sub);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:12px;backdrop-filter:blur(14px);}
+.actionBar.visible{display:flex;}
+.selCount{flex:1;font-family:'Orbitron',sans-serif;font-size:11px;color:var(--accent);min-width:80px;}
+.selectToggleRow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+
+/* NOTE ITEMS */
+.noteItem{display:flex;align-items:flex-start;gap:10px;background:var(--bg-card);border:1px solid rgba(0,242,255,0.08);border-radius:12px;padding:12px 13px;margin-top:10px;cursor:pointer;transition:border 0.2s,box-shadow 0.2s;position:relative;}
+.noteItem:hover{border-color:rgba(0,242,255,0.25);box-shadow:0 0 12px rgba(0,242,255,0.05);}
+.noteItem.selected{border-color:var(--accent);background:rgba(0,242,255,0.04);}
+.noteCheckbox{display:none;margin-top:2px;flex-shrink:0;width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
+.selectMode .noteCheckbox{display:block;}
+.noteBody{flex:1;min-width:0;}
+.noteTitle{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:1px;font-weight:bold;color:var(--text);padding-right:26px;}
+.notePreview{font-size:11px;color:var(--text-dim);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.noteDate{font-size:9px;color:var(--accent);opacity:0.3;margin-top:4px;}
+.starBtn{position:absolute;top:11px;right:11px;background:none;border:none;padding:0;font-size:15px;color:var(--text-dim);cursor:pointer;transition:color 0.2s;z-index:2;}
+.starBtn:hover{transform:none;filter:none;color:var(--gold);}
+.starBtn.on{color:var(--gold);text-shadow:0 0 10px rgba(255,209,102,0.5);}
+.emptyMsg{text-align:center;padding:36px 0;font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--text-dim);opacity:0.3;}
+
+/* SETTINGS */
+.settingsSection{margin-bottom:20px;}
+.settingsSection .sectionLabel{margin-bottom:10px;font-size:10px;border-bottom:1px solid var(--border);padding-bottom:6px;}
+.vizModeGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;}
+.vizModeBtn{padding:9px 8px;font-size:10px;letter-spacing:1px;text-align:center;}
+.sliderRow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sliderRow label{font-size:10px;color:var(--text-dim);min-width:80px;flex-shrink:0;}
+.sliderRow span{font-size:10px;color:var(--accent);min-width:36px;text-align:right;}
+.colorRow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.colorRow label{font-size:10px;color:var(--text-dim);flex:1;}
+input[type="color"]{width:44px;height:32px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;padding:2px;}
+.toggleRow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(0,242,255,0.06);}
+.toggleRow label{font-size:11px;color:var(--text-dim);}
+.toggle{position:relative;width:42px;height:22px;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggleSlider{position:absolute;inset:0;background:rgba(0,242,255,0.1);border:1px solid var(--border);border-radius:22px;cursor:pointer;transition:0.3s;}
+.toggleSlider:before{content:"";position:absolute;left:3px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:var(--text-dim);transition:0.3s;}
+.toggle input:checked+.toggleSlider{background:rgba(0,242,255,0.2);border-color:var(--accent);}
+.toggle input:checked+.toggleSlider:before{transform:translate(20px,-50%);background:var(--accent);box-shadow:0 0 8px var(--accent-glow);}
+
+/* MODAL */
+.modalOverlay{display:none;position:fixed;inset:0;background:rgba(2,3,10,0.9);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;padding:20px;}
+.modalOverlay.open{display:flex;}
+.modal{background:var(--bg-sub);border:1px solid var(--border);border-radius:18px;padding:26px;max-width:480px;width:100%;box-shadow:0 0 60px var(--accent-glow);max-height:85vh;overflow-y:auto;}
+.modalTitle{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;}
+.modalSub{font-size:11px;color:var(--text-dim);margin-bottom:4px;line-height:1.6;}
+.modalActions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.policySection{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.policySection h3{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:8px;}
+.policySection p{font-size:11px;color:var(--text-dim);line-height:1.7;margin-bottom:8px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(28px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:rgba(2,8,20,0.97);border:1px solid var(--accent);color:var(--accent);padding:9px 18px;border-radius:28px;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;opacity:0;transition:all 0.3s;z-index:300;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* POLICY BANNER — shows when filter OFF */
+.policyBanner{display:none;background:rgba(255,58,92,0.06);border:1px solid rgba(255,58,92,0.2);border-radius:10px;padding:10px 14px;margin-bottom:10px;align-items:center;gap:10px;flex-wrap:wrap;}
+.policyBanner.show{display:flex;}
+.policyBanner span{font-size:10px;color:rgba(255,58,92,0.8);flex:1;line-height:1.5;}
+.policyBannerBtns{display:flex;gap:6px;}
+
+/* POLICY NUDGE TOAST */
+.policyNudge{position:fixed;bottom:calc(68px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:rgba(2,5,15,0.97);border:1px solid rgba(255,58,92,0.4);color:rgba(255,58,92,0.9);padding:8px 16px;border-radius:24px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;opacity:0;transition:all 0.3s;z-index:299;pointer-events:none;text-align:center;max-width:calc(100% - 32px);}
+.policyNudge.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.policyNudge a{color:rgba(255,150,92,0.95);cursor:pointer;text-decoration:underline;}
+
+/* ══════════════════════════════════════════
+   WORDS TAB
+══════════════════════════════════════════ */
+.words-search-bar{display:flex;gap:8px;margin-bottom:10px;}
+.words-search-bar input{flex:1;margin-top:0;font-size:14px;}
+.words-controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.tag{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-family:'Share Tech Mono',monospace;background:rgba(0,242,255,0.07);border:1px solid var(--border);color:var(--text-dim);cursor:default;white-space:nowrap;transition:all 0.15s;}
+.tag.good{background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.3);color:#00ff88;}
+.tag.bad{background:rgba(255,58,92,0.08);border-color:rgba(255,58,92,0.25);color:#ff6b85;}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;}
+a.tag{text-decoration:none;cursor:pointer;}
+a.tag:hover{background:rgba(0,242,255,0.15);border-color:var(--accent);color:var(--accent);}
+.brand-web{border-color:rgba(0,180,255,0.3);color:#00b4ff;}
+.brand-yt{border-color:rgba(255,0,0,0.3);color:#ff4444;}
+.brand-dict{border-color:rgba(0,255,160,0.3);color:#00ffa0;}
+.brand-wiki{border-color:rgba(150,150,255,0.3);color:#9696ff;}
+.brand-wikt{border-color:rgba(200,150,100,0.3);color:#c8a878;}
+.brand-ency{border-color:rgba(180,100,255,0.3);color:#b464ff;}
+.brand-thes{border-color:rgba(255,180,0,0.3);color:#ffb400;}
+.brand-rhyme{border-color:rgba(0,255,200,0.3);color:#00ffc8;}
+.brand-ud{border-color:rgba(255,58,92,0.4);color:#ff3a5c;}
+.brand-lens{border-color:var(--purple);color:var(--purple);background:rgba(157,95,255,0.07);cursor:pointer;}
+.brand-lens:hover{background:rgba(157,95,255,0.15);}
+.pill-btn{padding:5px 12px;background:rgba(0,242,255,0.07);border:1px solid var(--border);border-radius:20px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.pill-btn:hover{border-color:var(--accent);color:var(--accent);transform:none;filter:none;}
+#redpillBtn{padding:5px 12px;background:rgba(0,242,255,0.05);border:1px solid var(--border);border-radius:20px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.15s;}
+#redpillBtn:hover{border-color:#ff3a5c;color:#ff3a5c;transform:none;filter:none;}
+#redpillBtn.red-active{border-color:#ff3a5c;color:#ff3a5c;background:rgba(255,58,92,0.08);box-shadow:0 0 10px rgba(255,58,92,0.2);}
+.status-line{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text-dim);min-height:20px;margin:6px 0;position:relative;overflow:hidden;}
+.status-loading{color:var(--accent);}
+.dictBadge{font-size:10px;letter-spacing:1px;}
+.wordListWrap{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;}
+
+/* Word button — extended for learning mode */
+.wordBtn{padding:7px 14px;background:rgba(0,242,255,0.07);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;transition:all 0.15s;position:relative;}
+.wordBtn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,242,255,0.12);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,242,255,0.1);}
+.wordBtn .tts-btn{background:none;border:none;padding:0 0 0 6px;font-size:13px;cursor:pointer;color:var(--text-dim);vertical-align:middle;transition:color 0.15s;}
+.wordBtn .tts-btn:hover{color:var(--accent);transform:none;filter:none;}
+
+/* Learning mode word bubble */
+.learnBubble{display:flex;flex-direction:column;align-items:flex-start;background:rgba(0,242,255,0.05);border:1px solid var(--border);border-radius:14px;padding:8px 12px;gap:2px;cursor:pointer;transition:border 0.15s;}
+.learnBubble:hover{border-color:var(--accent);}
+.learnBubble .l2word{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--text);letter-spacing:1px;}
+.learnBubble .l2roman{font-size:10px;color:var(--purple);margin-top:1px;}
+.learnBubble .l1ref{font-size:10px;color:var(--text-dim);margin-top:2px;}
+.learnBubble .bubble-actions{display:flex;gap:6px;margin-top:4px;}
+.learnBubble .tts-mini{background:none;border:1px solid var(--border);border-radius:12px;padding:2px 8px;font-size:10px;color:var(--text-dim);cursor:pointer;transition:all 0.15s;}
+.learnBubble .tts-mini:hover{border-color:var(--accent);color:var(--accent);transform:none;filter:none;}
+
+.crow-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;backdrop-filter:blur(16px);border-left:3px solid var(--accent);animation:fadeIn 0.25s ease;}
+.lensBox{background:rgba(157,95,255,0.06);border:1px solid rgba(157,95,255,0.2);border-radius:10px;padding:14px;margin-top:12px;}
+.synthBox{background:var(--bg-sub);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px;font-size:12px;color:var(--text-dim);font-style:italic;line-height:1.5;}
+.mono{font-family:'Share Tech Mono',monospace;}
+.muted{color:var(--text-dim);}
+
+.words-layout{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:720px){.words-layout{grid-template-columns:260px 1fr;}.words-sidebar{order:1;}.words-main{order:2;}}
+.words-sidebar{order:2;}.words-main{order:1;}
+.sidebar-section{margin-bottom:16px;}
+.sidebar-section .sectionLabel{border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:8px;}
+.savedItem{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:border 0.2s;}
+.savedItem:hover{border-color:var(--accent);}
+.savedWord{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--text);letter-spacing:1px;}
+.savedMeta{font-size:10px;color:var(--text-dim);margin-top:2px;}
+.memPill{display:inline-block;font-size:10px;font-family:'Share Tech Mono',monospace;color:var(--text-dim);background:var(--bg-sub);border:1px solid var(--border);border-radius:20px;padding:4px 12px;margin-bottom:10px;}
+.langRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.langRow label{font-size:10px;color:var(--text-dim);}
+.filterRow{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.filterRow label{font-size:10px;color:var(--text-dim);}
+
+/* Learning mode UI */
+.learnModeRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:8px 10px;background:rgba(157,95,255,0.06);border:1px solid rgba(157,95,255,0.15);border-radius:10px;}
+.learnModeRow label{font-size:10px;color:var(--purple);}
+.learnModeRow.active{background:rgba(157,95,255,0.12);border-color:rgba(157,95,255,0.3);}
+.learnModeBadge{display:inline-block;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;color:var(--purple);background:rgba(157,95,255,0.12);border:1px solid rgba(157,95,255,0.3);border-radius:20px;padding:3px 10px;}
+
+/* ══════════════════════════════════════════
+   SENTENCE LAB TAB
+══════════════════════════════════════════ */
+.sentLabHeader{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--purple);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.sentSearchBar{display:flex;gap:8px;margin-bottom:12px;}
+.sentSearchBar input{flex:1;margin-top:0;}
+.sentCard{background:var(--bg-card);border:1px solid rgba(157,95,255,0.2);border-radius:14px;padding:14px;margin-bottom:12px;animation:fadeIn 0.2s ease;}
+.sentCard .sent-l2{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:4px;}
+.sentCard .sent-roman{font-size:11px;color:var(--purple);margin-bottom:4px;}
+.sentCard .sent-en{font-size:11px;color:var(--text-dim);line-height:1.5;}
+.sentCard .sent-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.sentWord{display:inline;cursor:pointer;border-bottom:1px dashed rgba(157,95,255,0.35);transition:border-color 0.15s;}
+.sentWord:hover{border-color:var(--purple);}
+.miniCard{background:rgba(157,95,255,0.08);border:1px solid rgba(157,95,255,0.3);border-radius:12px;padding:12px;margin:10px 0;animation:fadeIn 0.2s ease;}
+.miniCard .mc-word{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--purple);margin-bottom:4px;}
+.miniCard .mc-roman{font-size:11px;color:var(--text-dim);margin-bottom:4px;}
+.miniCard .mc-def{font-size:12px;color:var(--text);line-height:1.5;}
+.miniCard .mc-actions{display:flex;gap:6px;margin-top:8px;}
+.practiceCard{background:var(--bg-card);border:1px solid rgba(157,95,255,0.18);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border 0.2s;}
+.practiceCard:hover{border-color:var(--purple);}
+.practiceCard .pc-front{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--text);}
+.practiceCard .pc-back{font-size:11px;color:var(--text-dim);margin-top:4px;display:none;}
+.practiceCard.flipped .pc-back{display:block;}
+.practiceCard.flipped{border-color:var(--purple);}
+
+/* FOOTER */
+.siteFooter{text-align:center;padding:28px 0 calc(20px + var(--safe-bot));position:relative;z-index:1;}
+.siteFooter a{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--text-dim);text-decoration:none;opacity:0.3;transition:opacity 0.3s;display:inline-block;margin:4px 8px;}
+.siteFooter a:hover{opacity:0.8;}
+.footer-policy{font-size:8px;letter-spacing:2px;opacity:0.2;}
+
+/* ANIMATIONS */
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:0.4}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:3px;}
+</style>
+</head>
+<body data-theme="dark">
+
+<canvas id="globalCanvas"></canvas>
+
+<!-- INSTALL BANNER -->
+<div class="installBanner" id="installBanner">
+  <div class="installText">INSTALL BLU-CO<span>Add to home screen for offline access</span></div>
+  <div class="installBtns">
+    <button onclick="doInstall()" style="font-size:10px;padding:6px 11px;">⬇ Install</button>
+    <button class="ghost" onclick="dismissInstall()" style="font-size:10px;padding:6px 9px;">✕</button>
+  </div>
+</div>
+
+<!-- FULLSCREEN VIZ -->
+<div id="fullVizOverlay">
+  <canvas id="fullVizCanvas"></canvas>
+  <button class="fullVizClose" onclick="closeFullViz()">✕ CLOSE</button>
+</div>
+
+<!-- POLICY MODAL -->
+<div class="modalOverlay" id="policyModal">
+  <div class="modal">
+    <div class="modalTitle">◈ USE POLICY</div>
+    <div class="modalSub" style="font-size:9px;letter-spacing:2px;color:var(--text-dim);">BLUCO.BLUECOMET.WORK · BLUECOMET.WORK</div>
+
+    <div class="policySection">
+      <h3>WHAT THIS SYSTEM IS</h3>
+      <p>Blu-Co World Words Hub is a linguistic pattern engine that generates word associations using phonetic, semantic, and structural analysis across multiple languages. It is a creative brainstorming and language exploration tool — not a content platform.</p>
+    </div>
+
+    <div class="policySection">
+      <h3>GUARDRAILS</h3>
+      <p>This system operates with two layers of content filtering. A permanent hard filter blocks a defined set of harmful output categories at all times, regardless of user settings and cannot be disabled. A secondary restriction filter is user-controlled.</p>
+      <p>When the restriction filter is disabled, the engine may surface words or associations that some users may find sensitive or mature in nature. BluComet.Work has made reasonable technical efforts to prevent harmful outputs but cannot guarantee every possible result under all conditions.</p>
+      <p>By disabling the restriction filter you confirm that you are 18 years of age or older and accept full responsibility for your use of this tool in that mode.</p>
+    </div>
+
+    <div class="policySection">
+      <h3>DISCLAIMER</h3>
+      <p>BluComet.Work and bluco.bluecomet.work are not liable for words, associations, or third-party content surfaced through user-initiated searches. All external links lead to independent platforms over which BluComet.Work has no control or affiliation.</p>
+      <p>This tool is provided as-is for creative and educational purposes. Use responsibly.</p>
+    </div>
+
+    <div class="policySection">
+      <h3>REPORT AN ISSUE</h3>
+      <p>If you encounter an output you believe should not have been generated, or wish to report a technical issue, you may do so below. Reports help us harden the system. You may report anonymously — no personal information is required.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button onclick="reportAnon()" style="font-size:10px;padding:7px 14px;background:rgba(255,58,92,0.1);border:1px solid rgba(255,58,92,0.3);color:#ff6b85;">⚑ Report Anonymously</button>
+        <button onclick="reportEmail()" style="font-size:10px;padding:7px 14px;" class="ghost">✉ Send Email Report</button>
+      </div>
+      <div id="reportConfirm" style="display:none;margin-top:10px;font-size:10px;color:#00ff88;">✓ Report sent. Thank you for helping improve the system.</div>
+    </div>
+
+    <div class="modalActions">
+      <button onclick="closePolicyModal()">✓ Understood</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modalOverlay" id="exportModal">
+  <div class="modal">
+    <div class="modalTitle" id="exportModalTitle">EXPORT NOTES</div>
+    <div class="modalSub" id="exportModalSub"></div>
+    <input type="text" id="exportFileName" placeholder="File name (e.g. field-log-01)…"/>
+    <div id="encryptFields" style="display:none">
+      <input type="password" id="encryptPass" placeholder="Set encryption password…"/>
+      <input type="password" id="encryptPassConfirm" placeholder="Confirm password…"/>
+    </div>
+    <div class="modalActions">
+      <button onclick="doExport()">⬇ Export</button>
+      <button class="ghost" onclick="closeExportModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- POLICY NUDGE (shows when filter off + RUN pressed) -->
+<div class="policyNudge" id="policyNudge">
+  Guardrails active but filter is off — outputs may be unfiltered. <a onclick="openPolicyModal()">Read Use Policy</a>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-title">BLU-CO</div>
+  <span class="header-sub">AUDIO · WORDS · NOTES · SOVEREIGN FIELD SYSTEM</span>
+  <span class="header-domain">BLUCO.BLUECOMET.WORK</span>
+</div>
+
+<!-- THEME ROW -->
+<div class="themeRow">
+  <button class="themeBtn active" id="themeDark"  onclick="setTheme('dark')">🌑 DARK</button>
+  <button class="themeBtn"        id="themeLight" onclick="setTheme('light')">☀️ LIGHT</button>
+  <button class="themeBtn"        id="themeCyber" onclick="setTheme('cyber')">⚡ CYBER</button>
+</div>
+
+<!-- TAB BAR -->
+<div class="tabBar">
+  <button class="tabBtn active" onclick="switchTab('audio')"    id="tab-audio">▸ AUDIO</button>
+  <button class="tabBtn"        onclick="switchTab('words')"    id="tab-words">◈ WORDS</button>
+  <button class="tabBtn"        onclick="switchTab('notes')"    id="tab-notes">▸ NOTES</button>
+  <button class="tabBtn"        onclick="switchTab('visuals')"  id="tab-visuals">◈ VISUALS</button>
+  <button class="tabBtn"        onclick="switchTab('sentlab')"  id="tab-sentlab">◈ SENTENCE LAB</button>
+</div>
+
+<!-- ═══════════════ AUDIO PANEL ═══════════════ -->
+<div class="panel active" id="panel-audio">
+<div class="container">
+  <div class="card audioCard">
+    <canvas id="audioCanvas"></canvas>
+    <div class="loopRing" id="loopRing"></div>
+    <div class="audioCardInner">
+      <div class="audioLabel">▸ AUDIO INTERFACE</div>
+      <input type="file" id="fileInput" accept="audio/*"/>
+      <div id="trackName" style="font-size:11px;color:var(--accent);margin-top:8px;letter-spacing:1px;min-height:16px;"></div>
+      <div class="controls">
+        <button onclick="playAudio()">▶ Play</button>
+        <button onclick="pauseAudio()">⏸ Pause</button>
+        <button class="ghost" onclick="toggleLoop()" id="loopBtn">🔁 Loop</button>
+        <button class="ghost" onclick="openFullViz()">◈ Full Viz</button>
+      </div>
+      <div class="seekWrapper">
+        <input type="range" id="seekBar" min="0" value="0" step="0.1"/>
+      </div>
+      <div class="timeLabel" id="timeLabel">0:00 / 0:00</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ WORDS PANEL ═══════════════ -->
+<div class="panel" id="panel-words">
+<div class="container">
+
+  <div class="card" style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--accent);">
+        WORLD WORDS HUB
+        <span id="dictBadge" class="tag dictBadge" style="margin-left:8px;font-size:9px;">Awaiting…</span>
+      </div>
+      <button id="redpillBtn" onclick="toggleRedPill()">🔵 Blue Pill</button>
+    </div>
+
+    <!-- Language Mode -->
+    <div class="langRow">
+      <label>LANG MODE:</label>
+      <select id="langMode">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="mix">EN + ES Mix</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="en_de">EN + DE Mix</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="zh">普通话 Mandarin</option>
+        <option value="yue">粵語 Cantonese</option>
+      </select>
+      <select id="langSelect">
+        <option value="en">UI: EN</option>
+        <option value="es">UI: ES</option>
+      </select>
+    </div>
+
+    <!-- Learning Mode -->
+    <div class="learnModeRow" id="learnModeRow">
+      <label>LEARNING MODE:</label>
+      <label class="toggle" style="display:inline-block;">
+        <input type="checkbox" id="learnToggle" onchange="toggleLearnMode()"/>
+        <span class="toggleSlider"></span>
+      </label>
+      <select id="learnL1" style="font-size:10px;padding:4px 8px;" onchange="onLearnLangChange()">
+        <option value="en">L1: English</option>
+        <option value="es">L1: Spanish</option>
+        <option value="fr">L1: French</option>
+        <option value="de">L1: German</option>
+        <option value="zh">L1: Mandarin</option>
+        <option value="yue">L1: Cantonese</option>
+        <option value="ja">L1: Japanese</option>
+        <option value="ko">L1: Korean</option>
+      </select>
+      <select id="learnL2" style="font-size:10px;padding:4px 8px;" onchange="onLearnLangChange()">
+        <option value="zh">L2: Mandarin</option>
+        <option value="yue">L2: Cantonese</option>
+        <option value="es">L2: Spanish</option>
+        <option value="fr">L2: French</option>
+        <option value="de">L2: German</option>
+        <option value="ja">L2: Japanese</option>
+        <option value="ko">L2: Korean</option>
+        <option value="en">L2: English</option>
+      </select>
+      <span class="learnModeBadge" id="learnBadge" style="display:none;">◈ LEARN ON</span>
+    </div>
+
+    <!-- Restriction Filter -->
+    <div class="filterRow">
+      <label>RESTRICTION FILTER:</label>
+      <label class="toggle" style="display:inline-block;">
+        <input type="checkbox" id="restrictToggle" checked onchange="toggleRestrict()"/>
+        <span class="toggleSlider"></span>
+      </label>
+      <span style="font-size:10px;color:var(--text-dim);" id="restrictLabel">ON</span>
+    </div>
+
+    <!-- Policy Banner (filter off) -->
+    <div class="policyBanner" id="policyBanner">
+      <span>Restriction filter is OFF. Hard guardrails remain active. You confirm you are 18+.</span>
+      <div class="policyBannerBtns">
+        <button onclick="openPolicyModal()" style="font-size:9px;padding:5px 10px;background:rgba(255,58,92,0.12);border:1px solid rgba(255,58,92,0.3);color:#ff6b85;">Use Policy</button>
+        <button onclick="reportAnon()" style="font-size:9px;padding:5px 10px;" class="ghost">Report</button>
+      </div>
+    </div>
+
+    <div class="words-search-bar">
+      <input type="text" id="mainSearch" placeholder="Enter a word…" style="margin-top:0;"/>
+      <button onclick="executeStack()" id="executeBtn">RUN</button>
+    </div>
+
+    <div class="words-controls">
+      <button class="ghost" onclick="clearStack()">CLEAR</button>
+      <button class="ghost" onclick="runMore()" id="moreBtn" style="display:none;">GENERATE MORE</button>
+      <button class="ghost" onclick="saveCurrentRun()" id="saveRunBtn" style="display:none;">💾 SAVE RUN</button>
+    </div>
+
+    <div class="status-line" id="statusLine">Enter a word and press RUN.</div>
+  </div>
+
+  <div class="words-layout">
+    <div class="words-sidebar">
+      <div class="card" style="padding:12px;">
+        <div class="memPill" id="memoryPill">🧠 Memory: 0 outputs • 0 cards</div>
+        <input type="text" id="notesSearch" placeholder="Search saved…" style="margin-top:0;margin-bottom:10px;font-size:11px;"/>
+        <div class="sidebar-section">
+          <div class="sectionLabel">SAVED OUTPUTS</div>
+          <div id="savedRunsEl"></div>
+          <button class="ghost" id="clearSavedBtn" style="margin-top:6px;font-size:10px;padding:5px 10px;">✕ Clear All Outputs</button>
+        </div>
+        <div class="sidebar-section" style="margin-top:14px;">
+          <div class="sectionLabel">SAVED CARDS</div>
+          <div id="savedCardsEl"></div>
+          <button class="ghost" id="clearSavedCardsBtn" style="margin-top:6px;font-size:10px;padding:5px 10px;">✕ Clear All Cards</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="words-main">
+      <div class="card" id="generatedSection" style="display:none;">
+        <div class="sectionLabel" id="generatedLabel">GENERATED WORDS</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;" id="generatedHint">Tap a word — see its scorecard below.</div>
+        <div class="wordListWrap" id="wordListEl"></div>
+      </div>
+      <div id="cardsArea"></div>
+      <div class="synthBox" id="synthesisBox" style="display:none;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:3px;color:var(--text-dim);margin-bottom:6px;">SYNTHESIS</div>
+        <div id="synthesisText">"The engine identifies patterns. The human determines the truth."</div>
+      </div>
+      <div id="mainWordLinks" style="display:none;flex-direction:column;gap:6px;margin-top:10px;"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ NOTES PANEL ═══════════════ -->
+<div class="panel" id="panel-notes">
+<div class="container">
+  <div class="card">
+    <div class="sectionLabel">▸ NEW NOTE</div>
+    <input type="text" id="noteTitle" placeholder="Note title…"/>
+    <textarea id="noteText" placeholder="Write your thoughts, lyrics, ideas… or drop words from the WORDS tab here."></textarea>
+    <div class="controls" style="margin-top:12px;">
+      <button onclick="saveNote()">💾 Save Note</button>
+    </div>
+  </div>
+  <div class="selectToggleRow">
+    <button class="ghost" id="selectToggleBtn" onclick="toggleSelectMode()">☐ Select</button>
+    <button class="ghost" id="selectAllBtn" onclick="selectAll()" style="display:none">Select All</button>
+    <button class="ghost" id="deselectAllBtn" onclick="deselectAll()" style="display:none">Deselect All</button>
+  </div>
+  <div class="actionBar" id="actionBar">
+    <div class="selCount" id="selCount">0 selected</div>
+    <button class="ghost" onclick="openExportModal(false)">⬇ Export HTML</button>
+    <button class="gold" onclick="openExportModal(true)">🔐 Encrypt</button>
+    <button class="danger" onclick="deleteSelected()">✕ Delete</button>
+  </div>
+  <div id="list"></div>
+</div>
+</div>
+
+<!-- ═══════════════ VISUALS PANEL ═══════════════ -->
+<div class="panel" id="panel-visuals">
+<div class="container">
+  <div class="card">
+    <div class="settingsSection">
+      <div class="sectionLabel">VIZ MODE</div>
+      <div class="vizModeGrid">
+        <button class="ghost vizModeBtn" id="vm-all"  onclick="setVizMode('all')">ALL LAYERS</button>
+        <button class="ghost vizModeBtn" id="vm-wave" onclick="setVizMode('wave')">WAVE BARS</button>
+        <button class="ghost vizModeBtn" id="vm-m1"   onclick="setVizMode('m1')">DRIFT RIBBON</button>
+        <button class="ghost vizModeBtn" id="vm-m2"   onclick="setVizMode('m2')">ORBIT RING</button>
+        <button class="ghost vizModeBtn" id="vm-m5"   onclick="setVizMode('m5')">PARTICLE FIELD</button>
+        <button class="ghost vizModeBtn" id="vm-n1"   onclick="setVizMode('n1')">RADIAL BLOOM</button>
+        <button class="ghost vizModeBtn" id="vm-n2"   onclick="setVizMode('n2')">PULSE RINGS</button>
+        <button class="ghost vizModeBtn" id="vm-n3"   onclick="setVizMode('n3')">SCAN LINES</button>
+        <button class="ghost vizModeBtn" id="vm-n5"   onclick="setVizMode('n5')">ROTATING BOX</button>
+        <button class="ghost vizModeBtn" id="vm-n6"   onclick="setVizMode('n6')">ORBIT DOT</button>
+      </div>
+    </div>
+    <div class="settingsSection">
+      <div class="sectionLabel">PARAMETERS</div>
+      <div class="sliderRow">
+        <label>Speed</label>
+        <input type="range" id="speedRange" min="10" max="200" value="100" oninput="updateSpeed(this.value)"/>
+        <span id="speedVal">100%</span>
+      </div>
+      <div class="sliderRow">
+        <label>Intensity</label>
+        <input type="range" id="intensityRange" min="10" max="200" value="100" oninput="updateIntensity(this.value)"/>
+        <span id="intensityVal">100%</span>
+      </div>
+      <div class="sliderRow">
+        <label>Cycle Rate</label>
+        <input type="range" id="cycleRange" min="1" max="60" value="20" oninput="updateCycle(this.value)"/>
+        <span id="cycleVal">20</span>
+      </div>
+    </div>
+    <div class="settingsSection">
+      <div class="sectionLabel">COLOR</div>
+      <div class="colorRow">
+        <label>Base Color</label>
+        <input type="color" id="colorPicker" value="#00f2ff" oninput="updateColor(this.value)"/>
+      </div>
+      <div class="toggleRow">
+        <label>Auto-Cycle Color</label>
+        <label class="toggle"><input type="checkbox" id="autoColor" checked onchange="updateAutoColor()"/><span class="toggleSlider"></span></label>
+      </div>
+    </div>
+    <div class="settingsSection">
+      <div class="sectionLabel">VISIBILITY</div>
+      <div class="toggleRow">
+        <label>Show In Audio Card</label>
+        <label class="toggle"><input type="checkbox" id="showInCard" checked onchange="updateShowInCard()"/><span class="toggleSlider"></span></label>
+      </div>
+      <div class="toggleRow">
+        <label>Show Global Background</label>
+        <label class="toggle"><input type="checkbox" id="showGlobal" checked onchange="updateShowGlobal()"/><span class="toggleSlider"></span></label>
+      </div>
+    </div>
+    <button class="ghost" style="width:100%;margin-top:6px;" onclick="switchTab('audio');openFullViz()">◈ OPEN FULLSCREEN VISUALIZER</button>
+    <div style="font-size:10px;color:var(--text-dim);margin-top:10px;">Load audio first for reactive visuals</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ SENTENCE LAB PANEL ═══════════════ -->
+<div class="panel" id="panel-sentlab">
+<div class="container">
+  <div class="card">
+    <div class="sentLabHeader">
+      ◈ SENTENCE LAB
+      <span class="learnModeBadge" id="sentLabBadge">EN → ZH</span>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;line-height:1.6;">
+      Search a word in your first language. Real example sentences in your target language appear below — tap any word for its mini card.
+    </div>
+    <div class="sentSearchBar">
+      <input type="text" id="sentSearch" placeholder="Enter a word or phrase…" style="margin-top:0;"/>
+      <button onclick="runSentenceLab()" id="sentRunBtn">FIND SENTENCES</button>
+    </div>
+    <div class="status-line" id="sentStatus">Choose Learning Mode in the WORDS tab first, then search here.</div>
+  </div>
+
+  <div id="sentResults"></div>
+
+  <div class="card" style="margin-top:4px;" id="practiceSection" style="display:none;">
+    <div class="sectionLabel" style="margin-bottom:10px;">◈ PRACTICE CARDS</div>
+    <div style="font-size:10px;color:var(--text-dim);margin-bottom:10px;">Tap a card to flip and see the translation.</div>
+    <div id="practiceCards"></div>
+    <button class="ghost" id="clearPracticeBtn" style="margin-top:8px;font-size:10px;padding:5px 10px;">✕ Clear Practice Cards</button>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div class="siteFooter">
+  <a href="https://www.bluecomet.work/" target="_blank" rel="noopener">◈ BLUCO.BLUECOMET.WORK</a>
+  <br/>
+  <a href="#" class="footer-policy" onclick="openPolicyModal();return false;">USE POLICY · DISCLAIMER · REPORT</a>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════
+//  PWA
+// ═══════════════════════════════════════════
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/sw.js',{scope:'/'})
+    .then(r=>console.log('[BC SW]',r.scope))
+    .catch(e=>console.warn('[BC SW]',e.message));
+})();
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show');});
+window.addEventListener('appinstalled',()=>{document.getElementById('installBanner').classList.remove('show');deferredPrompt=null;toast('APP INSTALLED ✓');});
+function doInstall(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(c=>{if(c.outcome==='accepted')toast('INSTALLING…');deferredPrompt=null;document.getElementById('installBanner').classList.remove('show');});}
+function dismissInstall(){document.getElementById('installBanner').classList.remove('show');}
+
+// ═══════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════
+function setTheme(t){
+  document.body.setAttribute('data-theme',t);
+  localStorage.setItem('bluco_theme',t);
+  document.querySelectorAll('.themeBtn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('theme'+t.charAt(0).toUpperCase()+t.slice(1));
+  if(btn) btn.classList.add('active');
+}
+function loadTheme(){setTheme(localStorage.getItem('bluco_theme')||'dark');}
+
+// ═══════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════
+function switchTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+// ═══════════════════════════════════════════
+//  POLICY MODAL
+// ═══════════════════════════════════════════
+function openPolicyModal(){document.getElementById('policyModal').classList.add('open');document.getElementById('reportConfirm').style.display='none';}
+function closePolicyModal(){document.getElementById('policyModal').classList.remove('open');}
+
+function reportAnon(){
+  const word=window._lastSearchedWord||'(word not captured)';
+  const ts=new Date().toISOString();
+  const body=`ANONYMOUS REPORT\nWord: ${word}\nTimestamp: ${ts}\nReport type: Inappropriate output\n\nNo personal information included.`;
+  const link=document.createElement('a');
+  link.href=`mailto:ATOB@BlueComet.Work?subject=Blu-Co%20Anonymous%20Report&body=${encodeURIComponent(body)}`;
+  link.click();
+  document.getElementById('reportConfirm').style.display='block';
+}
+function reportEmail(){
+  const word=window._lastSearchedWord||'(word not captured)';
+  const ts=new Date().toISOString();
+  const body=`BLU-CO ISSUE REPORT\nWord searched: ${word}\nTimestamp: ${ts}\n\nPlease describe the issue:\n\n---\nYour name (optional):\nYour contact (optional):`;
+  window.open(`mailto:ATOB@BlueComet.Work?subject=Blu-Co%20Issue%20Report&body=${encodeURIComponent(body)}`);
+  document.getElementById('reportConfirm').style.display='block';
+}
+
+// Policy nudge
+let nudgeTimer=null;
+function showPolicyNudge(){
+  const el=document.getElementById('policyNudge');
+  el.classList.add('show');
+  clearTimeout(nudgeTimer);
+  nudgeTimer=setTimeout(()=>el.classList.remove('show'),5000);
+}
+
+// ═══════════════════════════════════════════
+//  TTS — WEB SPEECH API
+// ═══════════════════════════════════════════
+const TTS_LANG_MAP={
+  en:'en-US', es:'es-ES', fr:'fr-FR', de:'de-DE',
+  zh:'zh-CN', yue:'zh-HK', ja:'ja-JP', ko:'ko-KR',
+  mix:'en-US', en_de:'en-US'
+};
+
+function speak(text,lang){
+  if(!('speechSynthesis' in window)){toast('TTS not supported on this device');return;}
+  window.speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang=TTS_LANG_MAP[lang]||lang||'en-US';
+  utt.rate=0.9; utt.pitch=1.0;
+  // Try to find a matching voice
+  const voices=window.speechSynthesis.getVoices();
+  const match=voices.find(v=>v.lang.startsWith(utt.lang.split('-')[0]));
+  if(match) utt.voice=match;
+  window.speechSynthesis.speak(utt);
+}
+
+// ═══════════════════════════════════════════
+//  WEB AUDIO
+// ═══════════════════════════════════════════
+let audioCtx=null,analyser=null,source=null;
+const player=new Audio();
+let looping=false;
+
+function initAudioContext(){
+  if(audioCtx) return;
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+  source=audioCtx.createMediaElementSource(player);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
+document.getElementById('fileInput').addEventListener('change',function(){
+  if(!this.files[0]) return;
+  initAudioContext();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  player.src=URL.createObjectURL(this.files[0]);
+  document.getElementById('trackName').textContent='▸ '+this.files[0].name.replace(/\.[^/.]+$/,'').toUpperCase();
+  player.play();
+  if('mediaSession' in navigator){
+    navigator.mediaSession.metadata=new MediaMetadata({title:this.files[0].name.replace(/\.[^/.]+$/,''),artist:'BLU-CO',album:'SOVEREIGN'});
+    navigator.mediaSession.setActionHandler('play',()=>player.play());
+    navigator.mediaSession.setActionHandler('pause',()=>player.pause());
+  }
+});
+
+function playAudio(){if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();player.play();}
+function pauseAudio(){player.pause();}
+function toggleLoop(){looping=!looping;player.loop=looping;document.getElementById('loopRing').classList.toggle('active',looping);document.getElementById('loopBtn').classList.toggle('active-btn',looping);}
+
+const seekBar=document.getElementById('seekBar');
+const timeLabel=document.getElementById('timeLabel');
+player.addEventListener('timeupdate',()=>{seekBar.max=player.duration||0;seekBar.value=player.currentTime;timeLabel.textContent=fmtTime(player.currentTime)+' / '+(player.duration?fmtTime(player.duration):'0:00');});
+seekBar.addEventListener('input',()=>{player.currentTime=+seekBar.value;});
+function fmtTime(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
+
+// ═══════════════════════════════════════════
+//  VISUALIZER CONFIG
+// ═══════════════════════════════════════════
+const VIZ={mode:'all',speed:1.0,intensity:1.0,hue:180,cycleRate:20,isAuto:true,baseColor:'#00f2ff',showInCard:true,showGlobal:true};
+
+function setVizMode(m){
+  VIZ.mode=m;
+  document.querySelectorAll('.vizModeBtn').forEach(b=>b.classList.remove('active-btn'));
+  const btn=document.getElementById('vm-'+m);
+  if(btn) btn.classList.add('active-btn');
+  saveVizConfig();
+}
+function updateSpeed(v){VIZ.speed=v/100;document.getElementById('speedVal').textContent=v+'%';saveVizConfig();}
+function updateIntensity(v){VIZ.intensity=v/100;document.getElementById('intensityVal').textContent=v+'%';saveVizConfig();}
+function updateCycle(v){VIZ.cycleRate=+v;document.getElementById('cycleVal').textContent=v;saveVizConfig();}
+function updateColor(v){VIZ.baseColor=v;saveVizConfig();}
+function updateAutoColor(){VIZ.isAuto=document.getElementById('autoColor').checked;saveVizConfig();}
+function updateShowInCard(){VIZ.showInCard=document.getElementById('showInCard').checked;saveVizConfig();}
+function updateShowGlobal(){VIZ.showGlobal=document.getElementById('showGlobal').checked;document.getElementById('globalCanvas').classList.toggle('active',VIZ.showGlobal);saveVizConfig();}
+function saveVizConfig(){localStorage.setItem('bc_viz_config',JSON.stringify(VIZ));}
+function loadVizConfig(){
+  const saved=localStorage.getItem('bc_viz_config');
+  if(saved){try{Object.assign(VIZ,JSON.parse(saved));}catch(e){}}
+  document.getElementById('speedRange').value=Math.round(VIZ.speed*100);
+  document.getElementById('speedVal').textContent=Math.round(VIZ.speed*100)+'%';
+  document.getElementById('intensityRange').value=Math.round(VIZ.intensity*100);
+  document.getElementById('intensityVal').textContent=Math.round(VIZ.intensity*100)+'%';
+  document.getElementById('cycleRange').value=VIZ.cycleRate;
+  document.getElementById('cycleVal').textContent=VIZ.cycleRate;
+  document.getElementById('colorPicker').value=VIZ.baseColor;
+  document.getElementById('autoColor').checked=VIZ.isAuto;
+  document.getElementById('showInCard').checked=VIZ.showInCard;
+  document.getElementById('showGlobal').checked=VIZ.showGlobal;
+  setVizMode(VIZ.mode);
+  if(VIZ.showGlobal) document.getElementById('globalCanvas').classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+//  VISUALIZER DRAW ENGINE
+// ═══════════════════════════════════════════
+function getColor(){
+  if(VIZ.isAuto){VIZ.hue=(VIZ.hue+(VIZ.cycleRate/20)*VIZ.speed*0.5)%360;return`hsl(${VIZ.hue},100%,55%)`;}
+  return VIZ.baseColor;
+}
+function getAudioData(){
+  const buf=new Uint8Array(analyser?analyser.frequencyBinCount:128);
+  if(analyser&&!player.paused){analyser.getByteFrequencyData(buf);}
+  else{const t=Date.now();for(let i=0;i<buf.length;i++) buf[i]=Math.max(0,Math.sin(i*0.15+t*0.001)*15+8);}
+  return buf;
+}
+
+function drawViz(ctx,w,h,data,color,t){
+  const isBeat=data[0]>180,sp=VIZ.speed,ix=VIZ.intensity,mode=VIZ.mode;
+  const M={
+    wave:()=>{
+      const bw=w/data.length;
+      ctx.fillStyle=color;ctx.shadowBlur=12*ix;ctx.shadowColor=color;
+      for(let i=0;i<data.length;i++){const bh=(data[i]/255)*h*0.65*ix;ctx.fillRect(i*bw,h/2-bh/2,Math.max(1,bw-1),bh);}
+      ctx.shadowBlur=0;
+    },
+    m1:()=>{
+      const grd=ctx.createLinearGradient(0,0,w,0);
+      grd.addColorStop(0,'transparent');grd.addColorStop(0.5,color);grd.addColorStop(1,'transparent');
+      ctx.globalAlpha=0.35*ix;
+      const off=Math.sin(t*0.001*sp)*80;
+      ctx.fillStyle=grd;ctx.fillRect(0,h/2-120+off,w,240);ctx.globalAlpha=1;
+    },
+    m2:()=>{
+      ctx.strokeStyle=color;ctx.lineWidth=(isBeat?8:2)*ix;
+      ctx.shadowBlur=20*ix;ctx.shadowColor=color;
+      ctx.beginPath();ctx.arc(w/2,h/2,h*0.22*ix,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
+    },
+    m5:()=>{
+      ctx.fillStyle=color;ctx.globalAlpha=0.18*ix;
+      for(let x=0;x<w;x+=40) for(let y=0;y<h;y+=40) if(Math.random()>0.985) ctx.fillRect(x,y,2,2);
+      ctx.globalAlpha=1;
+    },
+    n1:()=>{
+      ctx.save();ctx.translate(w/2,h/2);ctx.rotate(t*0.0004*sp);
+      const grd=ctx.createRadialGradient(0,0,0,0,0,h*0.38);
+      grd.addColorStop(0,color);grd.addColorStop(1,'transparent');
+      ctx.fillStyle=grd;ctx.globalAlpha=0.22*ix;ctx.fillRect(-w,-h,w*2,h*2);ctx.restore();
+    },
+    n2:()=>{
+      for(let i=0;i<3;i++){
+        const r=((t*0.08*sp+i*100)%280);
+        ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.globalAlpha=1-r/280;
+        ctx.shadowBlur=8*ix;ctx.shadowColor=color;
+        ctx.beginPath();ctx.arc(w/2,h/2,r,0,Math.PI*2);ctx.stroke();
+      }
+      ctx.globalAlpha=1;ctx.shadowBlur=0;
+    },
+    n3:()=>{
+      ctx.fillStyle=color;const x=(t*0.04*sp)%w;
+      ctx.globalAlpha=0.08*ix;ctx.fillRect(x,0,80,h);ctx.fillRect(w-x,0,40,h);ctx.globalAlpha=1;
+    },
+    n5:()=>{
+      ctx.save();ctx.translate(w/2,h/2);ctx.rotate(t*0.0008*sp);
+      const s=(isBeat?1.4:1.0)*120*ix;
+      ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.shadowBlur=12*ix;ctx.shadowColor=color;
+      ctx.strokeRect(-s/2,-s/2,s,s);ctx.rotate(Math.PI/4);
+      ctx.strokeRect(-s/1.4,-s/1.4,s/0.7,s/0.7);ctx.restore();ctx.shadowBlur=0;
+    },
+    n6:()=>{
+      const angle=t*0.0018*sp;
+      const rx=w/2+Math.cos(angle)*160,ry=h/2+Math.sin(angle)*160;
+      ctx.fillStyle=color;ctx.shadowBlur=20*ix;ctx.shadowColor=color;
+      ctx.beginPath();ctx.arc(rx,ry,12*ix,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    }
+  };
+  if(mode==='all') Object.values(M).forEach(fn=>fn());
+  else if(M[mode]) M[mode]();
+}
+
+// Canvas setup
+const audioCanvas=document.getElementById('audioCanvas');
+const audioCtxC=audioCanvas.getContext('2d');
+function resizeAudioCanvas(){const c=audioCanvas.parentElement;audioCanvas.width=c.offsetWidth;audioCanvas.height=c.offsetHeight;}
+window.addEventListener('resize',resizeAudioCanvas);setTimeout(resizeAudioCanvas,100);
+
+const globalCanvas=document.getElementById('globalCanvas');
+const globalCtxC=globalCanvas.getContext('2d');
+function resizeGlobalCanvas(){globalCanvas.width=window.innerWidth;globalCanvas.height=window.innerHeight;}
+window.addEventListener('resize',resizeGlobalCanvas);resizeGlobalCanvas();
+
+const fullVizCanvas=document.getElementById('fullVizCanvas');
+const fullVizCtxC=fullVizCanvas.getContext('2d');
+let fullVizOpen=false;
+function resizeFullCanvas(){fullVizCanvas.width=window.innerWidth;fullVizCanvas.height=window.innerHeight;}
+window.addEventListener('resize',resizeFullCanvas);resizeFullCanvas();
+function openFullViz(){document.getElementById('fullVizOverlay').classList.add('open');fullVizOpen=true;if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();}
+function closeFullViz(){document.getElementById('fullVizOverlay').classList.remove('open');fullVizOpen=false;}
+
+function vizLoop(){
+  const t=Date.now(),data=getAudioData(),color=getColor();
+  if(VIZ.showInCard){resizeAudioCanvas();audioCtxC.clearRect(0,0,audioCanvas.width,audioCanvas.height);audioCtxC.fillStyle='rgba(2,3,10,0.1)';audioCtxC.fillRect(0,0,audioCanvas.width,audioCanvas.height);drawViz(audioCtxC,audioCanvas.width,audioCanvas.height,data,color,t);}
+  if(VIZ.showGlobal){globalCtxC.clearRect(0,0,globalCanvas.width,globalCanvas.height);globalCtxC.fillStyle='rgba(2,3,10,0.08)';globalCtxC.fillRect(0,0,globalCanvas.width,globalCanvas.height);drawViz(globalCtxC,globalCanvas.width,globalCanvas.height,data,color,t);}
+  if(fullVizOpen){resizeFullCanvas();fullVizCtxC.clearRect(0,0,fullVizCanvas.width,fullVizCanvas.height);fullVizCtxC.fillStyle='rgba(2,3,10,0.15)';fullVizCtxC.fillRect(0,0,fullVizCanvas.width,fullVizCanvas.height);drawViz(fullVizCtxC,fullVizCanvas.width,fullVizCanvas.height,data,color,t);}
+  requestAnimationFrame(vizLoop);
+}
+requestAnimationFrame(vizLoop);
+
+// ═══════════════════════════════════════════
+//  NOTES (ANViS)
+// ═══════════════════════════════════════════
+const NOTES_KEY='bc_notes';
+let selectModeOn=false,selectedIds=new Set(),exportEncrypt=false;
+
+function getNotes(){try{return JSON.parse(localStorage.getItem(NOTES_KEY)||'[]');}catch(e){return[];}}
+function setNotes(n){localStorage.setItem(NOTES_KEY,JSON.stringify(n));}
+
+function saveNote(){
+  const title=document.getElementById('noteTitle').value.trim();
+  const text=document.getElementById('noteText').value.trim();
+  if(!title&&!text){toast('NOTHING TO SAVE');return;}
+  const notes=getNotes();
+  notes.unshift({id:Date.now(),title,text,star:false,created:new Date().toISOString()});
+  setNotes(notes);render();toast('NOTE SAVED ✓');
+  document.getElementById('noteTitle').value='';
+  document.getElementById('noteText').value='';
+}
+
+function saveToNotes(title,text){
+  const notes=getNotes();
+  notes.unshift({id:Date.now(),title:title||'Saved Word',text,star:false,created:new Date().toISOString()});
+  setNotes(notes);render();toast('SAVED TO NOTES ✓');
+}
+
+function loadNote(n){if(selectModeOn)return;document.getElementById('noteTitle').value=n.title||'';document.getElementById('noteText').value=n.text||'';switchTab('notes');document.getElementById('noteTitle').focus();}
+function toggleStar(id,e){e.stopPropagation();const notes=getNotes().map(n=>n.id===id?{...n,star:!n.star}:n);setNotes(notes);render();}
+function toggleSelectMode(){selectModeOn=!selectModeOn;selectedIds=new Set();document.getElementById('selectToggleBtn').textContent=selectModeOn?'☑ Select':'☐ Select';document.getElementById('selectAllBtn').style.display=selectModeOn?'':'none';document.getElementById('deselectAllBtn').style.display=selectModeOn?'':'none';document.getElementById('actionBar').classList.toggle('visible',selectModeOn);render();}
+function toggleSelect(id,e){e.stopPropagation();selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);document.getElementById('selCount').textContent=selectedIds.size+' selected';render();}
+function selectAll(){getNotes().forEach(n=>selectedIds.add(n.id));document.getElementById('selCount').textContent=selectedIds.size+' selected';render();}
+function deselectAll(){selectedIds=new Set();document.getElementById('selCount').textContent='0 selected';render();}
+function deleteSelected(){if(!selectedIds.size){toast('NOTHING SELECTED');return;}setNotes(getNotes().filter(n=>!selectedIds.has(n.id)));selectedIds=new Set();render();toast('DELETED ✓');document.getElementById('actionBar').classList.remove('visible');selectModeOn=false;document.getElementById('selectToggleBtn').textContent='☐ Select';document.getElementById('selectAllBtn').style.display='none';document.getElementById('deselectAllBtn').style.display='none';}
+
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function buildExportFile(notesToExport,title){
+  const notesHTML=notesToExport.map(n=>`<div class="note"><div class="t">${escH(n.title||'Untitled')}${n.star?' <span style="color:#FFD166">★</span>':''}</div><div class="body">${escH(n.text||'')}</div><div class="d">${n.created?new Date(n.created).toLocaleString():''}</div></div>`).join('');
+  return`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Blu-Co Notes — ${escH(title)}</title><style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Share Tech Mono',monospace;background:#02030a;color:#e0f8ff;min-height:100vh;padding:0 0 40px;}.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(0,242,255,0.1);background:rgba(2,3,10,0.97);position:sticky;top:0;backdrop-filter:blur(16px);}.topbar-title{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;color:#00f2ff;}.launch-btn{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;padding:8px 14px;background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.4);border-radius:8px;color:#00f2ff;text-decoration:none;}.container{max-width:800px;margin:0 auto;padding:20px 16px;}.note{border:1px solid rgba(0,242,255,0.12);border-radius:12px;padding:16px;margin-bottom:14px;background:rgba(5,10,20,0.6);}.t{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:1px;color:#00f2ff;margin-bottom:8px;font-weight:bold;}.body{white-space:pre-wrap;font-size:13px;color:#e0f8ff;line-height:1.6;}.d{font-size:10px;color:rgba(0,242,255,0.3);margin-top:10px;}.footer{text-align:center;padding:32px 0 16px;}.footer a{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(0,242,255,0.22);text-decoration:none;}</style></head><body><div class="topbar"><div class="topbar-title">BLU-CO NOTES — ${escH(title)}</div><a class="launch-btn" href="https://bluco.bluecomet.work/" target="_blank">◈ OPEN APP</a></div><div class="container">${notesHTML}<div class="footer"><a href="https://bluco.bluecomet.work/" target="_blank">◈ BLUCO.BLUECOMET.WORK</a></div></div></body></html>`;
+}
+
+async function buildEncryptedFile(notesToExport,title,pass){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  const k=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt']);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(notesToExport)));
+  const payload={salt:btoa(String.fromCharCode(...salt)),iv:btoa(String.fromCharCode(...new Uint8Array(iv))),cipher:btoa(String.fromCharCode(...new Uint8Array(ct)))};
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>${escH(title)} [ENCRYPTED]</title><style>body{font-family:monospace;background:#02030a;color:#e0f8ff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;}input[type=password]{padding:12px 18px;border:1px solid rgba(0,242,255,0.3);border-radius:10px;background:rgba(0,10,30,0.8);color:#e0f8ff;font-size:14px;width:280px;text-align:center;outline:none;}.btn{padding:11px 28px;background:#00f2ff;color:#001018;border:none;border-radius:10px;font-size:11px;font-weight:bold;cursor:pointer;}.err{color:#ff3a5c;font-size:11px;}.note{border:1px solid rgba(0,242,255,0.12);border-radius:12px;padding:16px;margin:10px 0;background:rgba(5,10,20,0.6);max-width:700px;width:100%;}.out{display:none;padding:20px;width:100%;}</style></head><body><div id="v"><h2 style="font-size:13px;letter-spacing:3px;color:#00f2ff;">🔐 ENCRYPTED NOTES</h2><input type="password" id="pw" placeholder="Enter password"/><button class="btn" onclick="dec()">DECRYPT</button><div class="err" id="err"></div></div><div id="o" class="out"></div><script>const P=${JSON.stringify(payload)};async function dec(){const pw=document.getElementById('pw').value;if(!pw)return;try{const s=Uint8Array.from(atob(P.salt),c=>c.charCodeAt(0));const iv=Uint8Array.from(atob(P.iv),c=>c.charCodeAt(0));const ct=Uint8Array.from(atob(P.cipher),c=>c.charCodeAt(0));const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);const k=await crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);const pl=await crypto.subtle.decrypt({name:'AES-GCM',iv},k,ct);const notes=JSON.parse(new TextDecoder().decode(pl));const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');document.getElementById('o').innerHTML=notes.map(n=>'<div class="note"><b style="color:#00f2ff">'+esc(n.title||'Untitled')+'<\/b><br/><br/>'+esc(n.text)+'<\/div>').join('');document.getElementById('v').style.display='none';document.getElementById('o').style.display='block';}catch(e){document.getElementById('err').textContent='WRONG PASSWORD';}}<\/script></body></html>`;
+}
+
+function downloadHTML(filename,html){const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([html],{type:'text/html'})),download:filename});a.click();URL.revokeObjectURL(a.href);}
+function openExportModal(enc){exportEncrypt=enc;document.getElementById('exportModalTitle').textContent=enc?'ENCRYPT & EXPORT':'EXPORT NOTES';document.getElementById('exportModalSub').textContent=enc?'AES-256-GCM encrypted export.':'Export as standalone HTML file.';document.getElementById('encryptFields').style.display=enc?'block':'none';document.getElementById('exportModal').classList.add('open');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('open');}
+async function doExport(){
+  const filename=(document.getElementById('exportFileName').value.trim()||'bluco-notes')+'.html';
+  const notesToExport=selectedIds.size?getNotes().filter(n=>selectedIds.has(n.id)):getNotes();
+  if(!notesToExport.length){toast('NO NOTES TO EXPORT');return;}
+  const title=document.getElementById('exportFileName').value.trim()||'Blu-Co Notes';
+  if(exportEncrypt){const pass=document.getElementById('encryptPass').value;const conf=document.getElementById('encryptPassConfirm').value;if(!pass){toast('PASSWORD REQUIRED');return;}if(pass!==conf){toast('PASSWORDS DO NOT MATCH');return;}downloadHTML(filename,await buildEncryptedFile(notesToExport,title,pass));}
+  else downloadHTML(filename,buildExportFile(notesToExport,title));
+  closeExportModal();toast('EXPORTED ✓');
+}
+
+function render(){
+  const notes=getNotes().sort((a,b)=>b.star-a.star);
+  const list=document.getElementById('list');
+  list.innerHTML='';
+  if(!notes.length){list.innerHTML='<div class="emptyMsg">NO NOTES YET</div>';return;}
+  const wrap=document.createElement('div');
+  if(selectModeOn) wrap.classList.add('selectMode');
+  notes.forEach(n=>{
+    const item=document.createElement('div');
+    item.className='noteItem'+(selectedIds.has(n.id)?' selected':'');
+    const cb=document.createElement('input');cb.type='checkbox';cb.className='noteCheckbox';cb.checked=selectedIds.has(n.id);cb.addEventListener('click',e=>toggleSelect(n.id,e));
+    const body=document.createElement('div');body.className='noteBody';
+    body.innerHTML=`<div class="noteTitle">${escH(n.title||'Untitled')}</div><div class="notePreview">${escH((n.text||'').slice(0,90))}</div><div class="noteDate">${n.created?new Date(n.created).toLocaleString():''}</div>`;
+    const star=document.createElement('button');star.className='starBtn'+(n.star?' on':'');star.textContent='★';star.addEventListener('click',e=>toggleStar(n.id,e));
+    item.addEventListener('click',()=>loadNote(n));
+    item.appendChild(cb);item.appendChild(body);item.appendChild(star);
+    wrap.appendChild(item);
+  });
+  list.appendChild(wrap);
+}
+
+// ═══════════════════════════════════════════
+//  LEARNING MODE
+// ═══════════════════════════════════════════
+let learnModeOn=false;
+
+function toggleLearnMode(){
+  learnModeOn=document.getElementById('learnToggle').checked;
+  document.getElementById('learnModeRow').classList.toggle('active',learnModeOn);
+  document.getElementById('learnBadge').style.display=learnModeOn?'inline-block':'none';
+  const sentTab=document.getElementById('tab-sentlab');
+  if(learnModeOn){
+    sentTab.classList.add('visible');
+    updateSentLabBadge();
+  } else {
+    sentTab.classList.remove('visible');
+    if(document.getElementById('panel-sentlab').classList.contains('active')) switchTab('words');
+  }
+  localStorage.setItem('bc_learn_mode',learnModeOn?'1':'0');
+  localStorage.setItem('bc_learn_l1',document.getElementById('learnL1').value);
+  localStorage.setItem('bc_learn_l2',document.getElementById('learnL2').value);
+}
+
+function onLearnLangChange(){
+  updateSentLabBadge();
+  localStorage.setItem('bc_learn_l1',document.getElementById('learnL1').value);
+  localStorage.setItem('bc_learn_l2',document.getElementById('learnL2').value);
+}
+
+function getLearnL1(){return document.getElementById('learnL1').value;}
+function getLearnL2(){return document.getElementById('learnL2').value;}
+
+const LANG_LABEL={en:'EN',es:'ES',fr:'FR',de:'DE',zh:'ZH',yue:'YUE',ja:'JA',ko:'KO'};
+
+function updateSentLabBadge(){
+  const l1=LANG_LABEL[getLearnL1()]||getLearnL1().toUpperCase();
+  const l2=LANG_LABEL[getLearnL2()]||getLearnL2().toUpperCase();
+  const badge=document.getElementById('learnBadge');
+  if(badge) badge.textContent=`◈ LEARN ON`;
+  const sentBadge=document.getElementById('sentLabBadge');
+  if(sentBadge) sentBadge.textContent=`${l1} → ${l2}`;
+  document.getElementById('sentSearch').placeholder=`Enter a word in ${l1}…`;
+}
+
+function loadLearnMode(){
+  const on=localStorage.getItem('bc_learn_mode')==='1';
+  const l1=localStorage.getItem('bc_learn_l1')||'en';
+  const l2=localStorage.getItem('bc_learn_l2')||'zh';
+  document.getElementById('learnL1').value=l1;
+  document.getElementById('learnL2').value=l2;
+  if(on){document.getElementById('learnToggle').checked=true;toggleLearnMode();}
+}
+
+// ═══════════════════════════════════════════
+//  CROW LENSE — WORLD WORDS HUB
+// ═══════════════════════════════════════════
+const MEM_KEY='bluco_crow_runs';
+const MEM_CARDS_KEY='bluco_crow_cards';
+const REDPILL_KEY='bluco_redpill';
+const PAGE_SIZE=20;
+const $=id=>document.getElementById(id);
+
+const I18N={
+  en:{runningStack:"Running engine…",readyTap:w=>`"${w}" ready. Tap a word.`,expandedTap:w=>`"${w}" expanded.`,expanding:"Expanding…",stopPoint:"Stop point reached.",saved:"Saved.",savedCard:"Card saved.",deletedOne:"Deleted.",deletedCard:"Card deleted.",clearedSaved:"Cleared.",clearedCards:"Cards cleared.",badgeDictOk:"Dictionary ✓",badgeDictSoftOk:"Not verified — ran anyway",badgeNetworkSoft:"Dictionary offline — ran anyway",wordNotVerifiedTitle:"Input not verified."},
+  es:{runningStack:"Ejecutando…",readyTap:w=>`"${w}" listo.`,expandedTap:w=>`"${w}" expandido.`,expanding:"Expandiendo…",stopPoint:"Punto de parada.",saved:"Guardado.",savedCard:"Tarjeta guardada.",deletedOne:"Eliminado.",deletedCard:"Eliminado.",clearedSaved:"Borrado.",clearedCards:"Borrado.",badgeDictOk:"Diccionario ✓",badgeDictSoftOk:"No verificado",badgeNetworkSoft:"Sin conexión",wordNotVerifiedTitle:"No verificado."}
+};
+function getUiLang(){return $('langSelect').value==='es'?'es':'en';}
+function t(key,...args){const L=I18N[getUiLang()]||I18N.en;const val=L[key];return(typeof val==='function')?val(...args):(val||key);}
+
+let crowState={inputWord:"",generation:0,used:new Set(),lastBatch:[],allResults:[],poolMeta:new Map(),seedCursor:0,running:false,activeCardItem:null,cardLinkLang:"en",mainLinkLang:"en",lensOpen:false,restricted:true,redPill:false};
+
+function normalizeWord(s){return(s||'').toLowerCase().trim().normalize('NFKD').replace(/[^a-z\u00C0-\u017FñÑáéíóúüÁÉÍÓÚÜß\u3000-\u9fff\uac00-\ud7af\u3040-\u30ff'-\s]/g,'').replace(/\s+/g,' ').trim();}
+function escapeHtml(s){return(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+
+function setBadge(text,cls){const b=$('dictBadge');b.className='tag dictBadge'+(cls?' '+cls:'');b.textContent=text;}
+function setStatus(msg){$('statusLine').textContent=msg;}
+function setLoading(on){$('statusLine').classList.toggle('status-loading',on);}
+
+const RESTRICTED_INPUT_ROOTS=['porn','porno','pornography','sex','sexual','xxx','erotic','nude','nudity','cocaine','heroin','meth','methamphetamine','lsd','fentanyl','marijuana','weed','drug','drugs','terror','terrorism','bomb','extremism','weapon','gun','shoot','shooting','war','violence','violent','murder','kill','killing','robbery','assault','crime','criminal'];
+const HARD_BLOCK_OUTPUT_ROOTS=['underage','minor','child','children','groom','grooming','traffick','trafficking','exploit','exploitation','rape','rapist','molest','molestation','incest','nonconsensual','non-consensual','behead','decapitat','dismember','mutilat'];
+
+function tokenize(s){return normalizeWord(s).split(' ').filter(Boolean);}
+function containsAnyRoot(text,roots){const tokens=tokenize(text);const joined=' '+tokens.join(' ')+' ';return roots.some(r=>{const rr=normalizeWord(r);if(!rr)return false;if(joined.includes(' '+rr+' '))return true;return tokens.some(tok=>tok.startsWith(rr));});}
+function isRestrictedInput(word){return containsAnyRoot(word,RESTRICTED_INPUT_ROOTS);}
+function filterHardBlocked(batch){return(batch||[]).filter(item=>!containsAnyRoot(normalizeWord(item.word),HARD_BLOCK_OUTPUT_ROOTS));}
+
+function getRedPill(){return localStorage.getItem(REDPILL_KEY)==='1';}
+function setRedPill(on){crowState.redPill=on;localStorage.setItem(REDPILL_KEY,on?'1':'0');refreshRedPillBtn();if(crowState.inputWord)renderMainWordLinks();if(crowState.activeCardItem)openSingleCard(crowState.activeCardItem,{keepScroll:true});}
+function refreshRedPillBtn(){const btn=$('redpillBtn');if(crowState.redPill){btn.textContent='🔴 Red Pill';btn.classList.add('red-active');}else{btn.textContent='🔵 Blue Pill';btn.classList.remove('red-active');}}
+function toggleRedPill(){setRedPill(!crowState.redPill);}
+
+function toggleRestrict(){
+  crowState.restricted=document.getElementById('restrictToggle').checked;
+  $('restrictLabel').textContent=crowState.restricted?'ON':'OFF';
+  const banner=$('policyBanner');
+  if(!crowState.restricted){
+    banner.classList.add('show');
+    openPolicyModal();
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function getLangMode(){return $('langMode').value;}
+function getCollabPair(){const m=getLangMode();if(m==='mix')return{a:'en',b:'es',labelA:'EN',labelB:'ES'};if(m==='en_de')return{a:'en',b:'de',labelA:'EN',labelB:'DE'};return null;}
+
+// Memory
+function loadRuns(){try{return JSON.parse(localStorage.getItem(MEM_KEY)||'[]');}catch(e){return[];}}
+function saveRuns(runs){localStorage.setItem(MEM_KEY,JSON.stringify(runs.slice(0,200)));renderAllNotes();}
+function addRun(run){const runs=loadRuns();const idx=runs.findIndex(r=>normalizeWord(r.word)===normalizeWord(run.word));if(idx>=0)runs.splice(idx,1);runs.unshift(run);saveRuns(runs);}
+function loadCards(){try{return JSON.parse(localStorage.getItem(MEM_CARDS_KEY)||'[]');}catch(e){return[];}}
+function saveCards(cards){localStorage.setItem(MEM_CARDS_KEY,JSON.stringify(cards.slice(0,400)));renderAllNotes();}
+function addCard(card){const cards=loadCards();const idx=cards.findIndex(c=>normalizeWord(c.word)===normalizeWord(card.word));if(idx>=0)cards.splice(idx,1);cards.unshift(card);saveCards(cards);}
+function updateMemoryPill(){const runs=loadRuns(),cards=loadCards();$('memoryPill').textContent=`🧠 Memory: ${runs.length} outputs • ${cards.length} cards`;}
+
+function getNotesFilter(){return normalizeWord($('notesSearch')?.value||'');}
+function renderSavedRuns(){
+  const runs=loadRuns(),filter=getNotesFilter();
+  const filtered=filter?runs.filter(r=>normalizeWord(r.word).includes(filter)):runs;
+  if(!runs.length){$('savedRunsEl').innerHTML=`<div class="muted" style="padding:8px 0;font-size:10px;">No saved outputs yet.</div>`;return;}
+  if(filter&&!filtered.length){$('savedRunsEl').innerHTML=`<div class="muted" style="padding:8px 0;font-size:10px;">No matches.</div>`;return;}
+  $('savedRunsEl').innerHTML=filtered.slice(0,60).map(r=>`<div class="savedItem" data-load="${escapeHtml(r.word)}"><div><div class="savedWord">${escapeHtml(r.word)}</div><div class="savedMeta">gen ${r.generation||1} • ${new Date(r.createdAt).toLocaleString()}</div></div><div style="display:flex;gap:6px;"><div class="tag" style="cursor:pointer;">Open</div><div class="tag bad" data-delrun="${escapeHtml(r.createdAt)}" style="cursor:pointer;">✕</div></div></div>`).join('');
+  [...$('savedRunsEl').querySelectorAll('[data-load]')].forEach(el=>el.addEventListener('click',()=>{$('mainSearch').value=el.getAttribute('data-load');executeStack();}));
+  [...$('savedRunsEl').querySelectorAll('[data-delrun]')].forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();saveRuns(loadRuns().filter(r=>r.createdAt!==el.getAttribute('data-delrun')));setStatus(t('deletedOne'));setTimeout(()=>setStatus(''),900);}));
+}
+function renderSavedCards(){
+  const cards=loadCards(),filter=getNotesFilter();
+  const filtered=filter?cards.filter(c=>normalizeWord(c.word).includes(filter)):cards;
+  if(!cards.length){$('savedCardsEl').innerHTML=`<div class="muted" style="padding:8px 0;font-size:10px;">No saved cards yet.</div>`;return;}
+  if(filter&&!filtered.length){$('savedCardsEl').innerHTML=`<div class="muted" style="padding:8px 0;font-size:10px;">No matches.</div>`;return;}
+  $('savedCardsEl').innerHTML=filtered.slice(0,80).map(c=>`<div class="savedItem" data-cardword="${escapeHtml(c.word)}"><div><div class="savedWord">${escapeHtml((c.word||'').toUpperCase())}</div><div class="savedMeta">from: ${escapeHtml((c.source||'').toUpperCase()||'—')}</div></div><div style="display:flex;gap:6px;"><div class="tag" style="cursor:pointer;">Open</div><div class="tag bad" data-delcard="${escapeHtml(c.createdAt)}" style="cursor:pointer;">✕</div></div></div>`).join('');
+  [...$('savedCardsEl').querySelectorAll('[data-cardword]')].forEach(el=>el.addEventListener('click',()=>{$('mainSearch').value=el.getAttribute('data-cardword');executeStack();}));
+  [...$('savedCardsEl').querySelectorAll('[data-delcard]')].forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();saveCards(loadCards().filter(c=>c.createdAt!==el.getAttribute('data-delcard')));setStatus(t('deletedCard'));setTimeout(()=>setStatus(''),900);}));
+}
+function renderAllNotes(){updateMemoryPill();renderSavedRuns();renderSavedCards();}
+$('notesSearch').addEventListener('input',()=>renderAllNotes());
+$('clearSavedBtn').addEventListener('click',()=>{localStorage.removeItem(MEM_KEY);renderAllNotes();setStatus(t('clearedSaved'));setTimeout(()=>setStatus(''),1200);});
+$('clearSavedCardsBtn').addEventListener('click',()=>{localStorage.removeItem(MEM_CARDS_KEY);renderAllNotes();setStatus(t('clearedCards'));setTimeout(()=>setStatus(''),1200);});
+
+// Dictionary check
+const dictCache=new Map();
+async function dictCheck(word,lang){
+  const w=normalizeWord(word),key=`${lang}|${w}`;
+  if(!w||w.length<2)return{ok:false,uncertain:false};
+  if(dictCache.has(key))return dictCache.get(key);
+  try{const res=await fetch(`https://api.dictionaryapi.dev/api/v2/entries/${encodeURIComponent(lang)}/${encodeURIComponent(w)}`);const result={ok:res.ok,uncertain:false};dictCache.set(key,result);return result;}
+  catch(e){const result={ok:true,uncertain:true};dictCache.set(key,result);return result;}
+}
+
+// Link packs
+function linkPackFor(lang,word){
+  const w=word,hl=lang==='es'?'es':lang==='de'?'de':lang==='fr'?'fr':lang==='ja'?'ja':lang==='ko'?'ko':lang==='zh'||lang==='yue'?'zh':'en';
+  const gl=lang==='es'?'es':lang==='de'?'de':lang==='fr'?'fr':'us';
+  const rhymeHref=lang==='en'?`https://www.rhymezone.com/r/rhyme.cgi?Word=${encodeURIComponent(w)}&typeofrhyme=perfect&org1=syl&org2=l&org3=y`:`https://www.google.com/search?q=${encodeURIComponent('rhymes '+w)}&hl=${hl}`;
+  if(lang==='es')return{dictLabel:'RAE',dictHref:`https://dle.rae.es/${encodeURIComponent(w)}`,wiktLabel:'Wikcionario',wiktHref:`https://es.wiktionary.org/wiki/${encodeURIComponent(w)}`,wikiLabel:'Wikipedia',wikiHref:`https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(w)}`,encyLabel:'Encyclopedia',encyHref:`https://www.encyclopedia.com/gsearch?query=${encodeURIComponent(w)}`,thesLabel:'Sinónimos',thesHref:`https://www.google.com/search?q=${encodeURIComponent('sinónimos '+w)}&hl=es`,ytHref:`https://www.youtube.com/results?search_query=${encodeURIComponent(w)}&hl=${hl}`,webHref:`https://www.google.com/search?q=${encodeURIComponent(w)}&hl=${hl}&gl=${gl}`,rhymeHref,rhymeLabel:'Rima',urbanHref:`https://www.urbandictionary.com/define.php?term=${encodeURIComponent(w)}`};
+  if(lang==='fr')return{dictLabel:'Larousse',dictHref:`https://www.larousse.fr/dictionnaires/francais/${encodeURIComponent(w)}`,wiktLabel:'Wiktionnaire',wiktHref:`https://fr.wiktionary.org/wiki/${encodeURIComponent(w)}`,wikiLabel:'Wikipédia',wikiHref:`https://fr.wikipedia.org/w/index.php?search=${encodeURIComponent(w)}`,encyLabel:'Encyclopédie',encyHref:`https://www.encyclopedia.com/gsearch?query=${encodeURIComponent(w)}`,thesLabel:'Synonymes',thesHref:`https://www.google.com/search?q=${encodeURIComponent('synonymes '+w)}&hl=fr`,ytHref:`https://www.youtube.com/results?search_query=${encodeURIComponent(w)}&hl=${hl}`,webHref:`https://www.google.com/search?q=${encodeURIComponent(w)}&hl=${hl}&gl=${gl}`,rhymeHref,rhymeLabel:'Rime',urbanHref:`https://www.urbandictionary.com/define.php?term=${encodeURIComponent(w)}`};
+  if(lang==='de')return{dictLabel:'Duden',dictHref:`https://www.duden.de/suchen/dudenonline/${encodeURIComponent(w)}`,wiktLabel:'Wiktionary',wiktHref:`https://de.wiktionary.org/wiki/${encodeURIComponent(w)}`,wikiLabel:'Wikipedia',wikiHref:`https://de.wikipedia.org/w/index.php?search=${encodeURIComponent(w)}`,encyLabel:'Encyclopädie',encyHref:`https://www.encyclopedia.com/gsearch?query=${encodeURIComponent(w)}`,thesLabel:'Synonyme',thesHref:`https://www.openthesaurus.de/synonyme/${encodeURIComponent(w)}`,ytHref:`https://www.youtube.com/results?search_query=${encodeURIComponent(w)}&hl=${hl}`,webHref:`https://www.google.com/search?q=${encodeURIComponent(w)}&hl=${hl}&gl=${gl}`,rhymeHref,rhymeLabel:'Reim',urbanHref:`https://www.urbandictionary.com/define.php?term=${encodeURIComponent(w)}`};
+  if(lang==='zh'||lang==='yue')return{dictLabel:'MDBG',dictHref:`https://www.mdbg.net/chinese/dictionary?page=worddict&wdrst=0&wdqb=${encodeURIComponent(w)}`,wiktLabel:'Wiktionary',wiktHref:`https://zh.wiktionary.org/wiki/${encodeURIComponent(w)}`,wikiLabel:'Wikipedia',wikiHref:`https://zh.wikipedia.org/w/index.php?search=${encodeURIComponent(w)}`,encyLabel:'Pleco',encyHref:`https://www.pleco.com/`,thesLabel:'Synonyms',thesHref:`https://www.google.com/search?q=${encodeURIComponent(w+'同义词')}&hl=zh-CN`,ytHref:`https://www.youtube.com/results?search_query=${encodeURIComponent(w)}&hl=${hl}`,webHref:`https://www.google.com/search?q=${encodeURIComponent(w)}&hl=zh-CN`,rhymeHref:`https://www.google.com/search?q=${encodeURIComponent(w+'押韵')}`,rhymeLabel:'Rhyme',urbanHref:`https://www.urbandictionary.com/define.php?term=${encodeURIComponent(w)}`};
+  if(lang==='ja')return{dictLabel:'Jisho',dictHref:`https://jisho.org/search/${encodeURIComponent(w)}`,wiktLabel:'Wiktionary',wiktHref:`https://ja.wiktionary.org/wiki/${encodeURIComponent(w)}`,wikiLabel:'Wikipedia',wikiHref:`https://ja.wikipedia.org/w/index.php?search=${encodeURIComponent(w)}`,encyLabel:'Encyclopedia',encyHref:`https://www.encyclopedia.com/gsearch?query=${encodeURIComponent(w)}`,thesLabel:'類義語',thesHref:`https://www.google.com/search?q=${encodeURIComponent(w+'類義語')}&hl=ja`,ytHref:`https://www.youtube.com/results?search_query=${encodeURIComponent(w)}&hl=ja`,webHref:`https://www.google.com/search?q=${encodeURIComponent(w)}&hl=ja`,rhymeHref:`https://www.google.com/search?q=${encodeURIComponent(w+'韻を踏む')}`,rhymeLabel:'Rhyme',urbanHref:`https://www.urbandictionary.com/define.php?term=${encodeURIComponent(w)}`};
+  if(lang==='ko')return{dictLabel:'Naver Dict',dictHref:`https://dict.naver.com/search.nhn?dicQuery=${encodeURIComponent(w)}`,wiktLabel:'Wiktionary',wiktHref:`https://ko.wiktionary.org/wiki/${encodeURIComponent(w)}`,wikiLabel:'Wikipedia',wikiHref:`https://ko.wikipedia.org/w/index.php?search=${encodeURIComponent(w)}`,encyLabel:'Encyclopedia',encyHref:`https://www.encyclopedia.com/gsearch?query=${encodeURIComponent(w)}`,thesLabel:'유의어',thesHref:`https://www.google.com/search?q=${encodeURIComponent(w+'유의어')}&hl=ko`,ytHref:`https://www.youtube.com/results?search_query=${encodeURIComponent(w)}&hl=ko`,webHref:`https://www.google.com/search?q=${encodeURIComponent(w)}&hl=ko`,rhymeHref:`https://www.google.com/search?q=${encodeURIComponent(w+'운율')}`,rhymeLabel:'Rhyme',urbanHref:`https://www.urbandictionary.com/define.php?term=${encodeURIComponent(w)}`};
+  return{dictLabel:'Dictionary.com',dictHref:`https://www.dictionary.com/browse/${encodeURIComponent(w)}`,wiktLabel:'Wiktionary',wiktHref:`https://en.wiktionary.org/wiki/${encodeURIComponent(w)}`,wikiLabel:'Wikipedia',wikiHref:`https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(w)}`,encyLabel:'Encyclopedia',encyHref:`https://www.encyclopedia.com/gsearch?query=${encodeURIComponent(w)}`,thesLabel:'Thesaurus',thesHref:`https://www.thesaurus.com/browse/${encodeURIComponent(w)}`,ytHref:`https://www.youtube.com/results?search_query=${encodeURIComponent(w)}`,webHref:`https://www.google.com/search?q=${encodeURIComponent(w)}`,rhymeHref:`https://www.rhymezone.com/r/rhyme.cgi?Word=${encodeURIComponent(w)}&typeofrhyme=perfect&org1=syl&org2=l&org3=y`,rhymeLabel:'Rhyme',urbanHref:`https://www.urbandictionary.com/define.php?term=${encodeURIComponent(w)}`};
+}
+
+function buildLinksBlockHTML(lang,word){
+  const pack=linkPackFor(lang,word);
+  const udTag=crowState.redPill?`<a class="tag brand-ud" rel="noopener noreferrer" target="_blank" href="${pack.urbanHref}">🔴 Urban Dict</a>`:'';
+  return`<div class="tag-row" style="margin-top:10px;"><a class="tag brand-web" rel="noopener noreferrer" target="_blank" href="${pack.webHref}">Web</a><a class="tag brand-rhyme" rel="noopener noreferrer" target="_blank" href="${pack.rhymeHref}">${pack.rhymeLabel}</a><a class="tag brand-yt" rel="noopener noreferrer" target="_blank" href="${pack.ytHref}">YouTube</a>${udTag}</div><div class="tag-row" style="margin-top:8px;"><a class="tag brand-dict" rel="noopener noreferrer" target="_blank" href="${pack.dictHref}">${pack.dictLabel}</a><a class="tag brand-wiki" rel="noopener noreferrer" target="_blank" href="${pack.wikiHref}">${pack.wikiLabel}</a><a class="tag brand-wikt" rel="noopener noreferrer" target="_blank" href="${pack.wiktHref}">${pack.wiktLabel}</a><a class="tag brand-ency" rel="noopener noreferrer" target="_blank" href="${pack.encyHref}">${pack.encyLabel}</a><a class="tag brand-thes" rel="noopener noreferrer" target="_blank" href="${pack.thesHref}">${pack.thesLabel}</a></div>`;
+}
+
+function renderMainWordLinks(){
+  if(!crowState.inputWord){$('mainWordLinks').style.display='none';$('mainWordLinks').innerHTML='';return;}
+  const pair=getCollabPair(),showToggle=!!pair;
+  const lang=showToggle?(crowState.mainLinkLang||pair.a):crowState.mainLinkLang;
+  $('mainWordLinks').style.display='flex';
+  const toggleBtn=showToggle?`<button class="pill-btn" id="mainLinkToggle">${pair.labelA} ↔ ${pair.labelB} • ${lang.toUpperCase()}</button>`:'';
+  $('mainWordLinks').innerHTML=`${toggleBtn}<div style="width:100%;">${buildLinksBlockHTML(lang,normalizeWord(crowState.inputWord))}</div>`;
+  const btn=$('mainLinkToggle');
+  if(btn) btn.addEventListener('click',()=>{const p=getCollabPair();if(!p)return;crowState.mainLinkLang=(crowState.mainLinkLang===p.a)?p.b:p.a;renderMainWordLinks();});
+}
+
+// Datamuse
+async function dm(params){try{const res=await fetch(`https://api.datamuse.com/words?${params}`);if(!res.ok)return[];return res.json();}catch(e){return[];}}
+
+// Translation (MyMemory free)
+async function translateWord(word,fromLang,toLang){
+  try{
+    const from=fromLang==='yue'?'zh-TW':fromLang==='mix'?'en':fromLang;
+    const to=toLang==='yue'?'zh-TW':toLang;
+    const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=${from}|${to}`);
+    const data=await res.json();
+    if(data.responseStatus===200&&data.responseData?.translatedText){
+      return data.responseData.translatedText;
+    }
+  }catch(e){}
+  return null;
+}
+
+// 9 THINKING PATTERNS
+function layerReasons(){
+  return[
+    {layer:'Apophenia',    type:'mix', reason:(seed,w)=>`Apophenia: loose association from "${seed}" toward "${w}".`},
+    {layer:'Phonosemantic',type:'sl',  reason:(seed,w)=>`Phonosemantic: pronunciation feel from "${seed}" toward "${w}".`},
+    {layer:'Phonetic Drift',type:'sl', reason:(seed,w)=>`Phonetic drift: sound-slide from "${seed}" toward "${w}".`},
+    {layer:'Semiotic',     type:'sp',  reason:(seed,w)=>`Semiotic: glyph/shape pattern from "${seed}" toward "${w}".`},
+    {layer:'Morphological',type:'sp',  reason:(seed,w)=>`Morphological: structural reanalysis from "${seed}" toward "${w}".`},
+    {layer:'Metaphorical', type:'ml',  reason:(seed,w)=>`Metaphorical: meaning adjacency from "${seed}" toward "${w}".`},
+    {layer:'Symbolic',     type:'ml',  reason:(seed,w)=>`Symbolic: archetypal resonance from "${seed}" toward "${w}".`},
+    {layer:'Associative',  type:'ml',  reason:(seed,w)=>`Associative: spreading activation from "${seed}" toward "${w}".`},
+    {layer:'Predictive',   type:'ml',  reason:(seed,w)=>`Predictive: narrative completion from "${seed}" toward "${w}".`},
+  ];
+}
+
+function buildSeeds(word){
+  const w=normalizeWord(word),seeds=new Set();seeds.add(w);
+  for(let i=0;i<w.length;i++) for(let j=i+3;j<=w.length;j++) seeds.add(w.slice(i,j));
+  seeds.add(w.replace(/ph/g,'f'));seeds.add(w.replace(/c(?=[eiy])/g,'s'));
+  seeds.add(w.replace(/tion/g,'shun'));seeds.add(w.replace(/[aeiouáéíóúü]/g,''));
+  seeds.add(w.split('').reverse().join(''));
+  const arr=[...seeds].filter(s=>s&&s.length>=2);arr.sort((a,b)=>b.length-a.length);
+  return arr.slice(0,18);
+}
+
+function score(word,meta){
+  const w=normalizeWord(word);let s=0;
+  s+=Math.min(0.35,(meta.layers.size-1)*0.10);
+  if(meta.types.has('sl'))s+=0.12;if(meta.types.has('ml'))s+=0.10;if(meta.types.has('sp'))s+=0.08;
+  const vowel=(w.match(/[aeiouáéíóúü]/g)||[]).length;s+=Math.min(0.18,vowel*0.03);
+  if(w.length>=4&&w.length<=9)s+=0.12;if(w.length<=3)s-=0.10;
+  if(crowState.used.has(w))s-=0.30;
+  return Math.max(0,Math.min(1,s));
+}
+
+function mergeCandidate(word,layer,type,reason,seed){
+  const w=normalizeWord(word),s=normalizeWord(seed);
+  if(!w||w===normalizeWord(crowState.inputWord))return;
+  if(!crowState.poolMeta.has(w)){crowState.poolMeta.set(w,{word:w,layers:new Set([layer]),types:new Set([type]),reasons:new Set([reason]),seedByType:new Map(s?[[type,s]]:[])});}
+  else{const m=crowState.poolMeta.get(w);m.layers.add(layer);m.types.add(type);m.reasons.add(reason);if(s&&!m.seedByType.has(type))m.seedByType.set(type,s);}
+}
+
+async function queryLayer(L,cleanSeed,vocab){
+  try{
+    const v=vocab==='es'?'&v=es':vocab==='enwiki'?'&v=enwiki':'';
+    if(L.type==='mix'){const a=await dm(`sl=${encodeURIComponent(cleanSeed)}&max=10${v}`);const b=await dm(`ml=${encodeURIComponent(cleanSeed)}&max=10${v}`);const c=await dm(`sp=${encodeURIComponent('*'+cleanSeed+'*')}&max=10${v}`);return[...a,...b,...c];}
+    if(L.type==='sl')return await dm(`sl=${encodeURIComponent(cleanSeed)}&max=18${v}`);
+    if(L.type==='ml')return await dm(`ml=${encodeURIComponent(cleanSeed)}&max=18${v}`);
+    if(L.type==='sp'){const pat=cleanSeed.length>=4?`*${cleanSeed}*`:`${cleanSeed}*`;return await dm(`sp=${encodeURIComponent(pat)}&max=18${v}`);}
+    return[];
+  }catch(e){return[];}
+}
+
+function getVocabPlan(){
+  const m=getLangMode();
+  if(m==='es')return['es'];if(m==='mix')return['en','es'];if(m==='de'||m==='fr')return['enwiki'];if(m==='en_de')return['en','enwiki'];
+  return['en'];
+}
+
+async function runOneGeneration(seedWords){
+  const layers=layerReasons(),seeds=[];
+  for(const sw of seedWords) buildSeeds(sw).forEach(s=>seeds.push(s));
+  const vocabs=getVocabPlan();
+  for(const L of layers){
+    const seed=seeds[(crowState.seedCursor++)%seeds.length]||normalizeWord(crowState.inputWord);
+    const cleanSeed=normalizeWord(seed);if(!cleanSeed||cleanSeed.length<2)continue;
+    for(const vocab of vocabs){const results=await queryLayer(L,cleanSeed,vocab);for(const r of results){const cand=normalizeWord(r.word);if(!cand||cand.length<3)continue;mergeCandidate(cand,L.layer,L.type,L.reason(cleanSeed,cand),cleanSeed);}}
+  }
+  const all=[...crowState.poolMeta.values()].map(m=>({word:m.word,layers:m.layers,types:m.types,reasons:[...m.reasons],seedByType:m.seedByType,score:score(m.word,m),isNew:!crowState.used.has(m.word)}));
+  all.sort((a,b)=>(b.score-a.score)||(b.layers.size-a.layers.size)||a.word.localeCompare(b.word));
+  const batch=[];
+  for(const item of all){if(batch.length>=PAGE_SIZE)break;if(crowState.used.has(item.word))continue;batch.push(item);crowState.used.add(item.word);}
+  return{batch,novelty:batch.length?batch.filter(x=>x.isNew).length/batch.length:0};
+}
+
+function bestReason(item){const pref=item.reasons.find(r=>r.toLowerCase().includes('phonetic drift')||r.toLowerCase().includes('phonosemantic'));return pref||item.reasons[0]||'Pattern derived.';}
+function anchorLine(item){const seedSound=item.seedByType?.get('sl');if(!seedSound)return'';return`<div class="tag-row" style="margin-top:10px;"><span class="tag bad">Anchored to ${escapeHtml(seedSound.toUpperCase())}</span></div>`;}
+
+const PATTERN_GLOSS={
+  'Apophenia':{meaning:'Seeing a loose connection between ideas that aren\'t strictly related.',example:(s,w)=>`"${s}" → (loose association) → "${w}"`},
+  'Phonosemantic':{meaning:'A connection driven by pronunciation — the sound suggests a neighbor word.',example:(s,w)=>`"${s}" → (sound feel) → "${w}"`},
+  'Phonetic Drift':{meaning:'A sound-slide: small phoneme shifts nudge one form toward another.',example:(s,w)=>`"${s}" → (sound-slide) → "${w}"`},
+  'Semiotic':{meaning:'A connection based on symbol/shape/glyph — how the word looks visually.',example:(s,w)=>`"${s}" → (visual pattern) → "${w}"`},
+  'Morphological':{meaning:'A connection based on word structure — roots, affixes, stems.',example:(s,w)=>`"${s}" → (structure shift) → "${w}"`},
+  'Metaphorical':{meaning:'A meaning leap through metaphor — adjacent ideas or conceptual neighbors.',example:(s,w)=>`"${s}" → (metaphor) → "${w}"`},
+  'Symbolic':{meaning:'A connection through archetypes or symbols — cultural or thematic resonance.',example:(s,w)=>`"${s}" → (symbol) → "${w}"`},
+  'Associative':{meaning:'Spreading activation: one concept primes related concepts in memory networks.',example:(s,w)=>`"${s}" primes neighbors → "${w}"`},
+  'Predictive':{meaning:'A narrative completion move — a plausible continuation from the seed context.',example:(s,w)=>`"${s}" → (completion) → "${w}"`}
+};
+function extractPatternName(reasonLine){const raw=(reasonLine||'').split(':')[0].trim();return raw.split(' ').map(x=>x?(x[0].toUpperCase()+x.slice(1).toLowerCase()):x).join(' ');}
+function extractSeed(reasonLine){const m=(reasonLine||'').match(/from\s+"([^"]+)"/i);return m?m[1]:crowState.inputWord;}
+
+function buildCard(item){
+  const div=document.createElement('div');div.className='crow-card';div.id='scorecard';
+  const pair=getCollabPair(),showToggle=!!pair;
+  const linkLang=showToggle?(crowState.cardLinkLang||pair.a):crowState.cardLinkLang;
+  const reasonLine=bestReason(item);
+  const patternName=extractPatternName(reasonLine);
+  const seed=extractSeed(reasonLine);
+  const gloss=PATTERN_GLOSS[patternName];
+  const ttsLang=TTS_LANG_MAP[getLangMode()]||'en-US';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="font-weight:900;letter-spacing:1px;font-family:'Orbitron',sans-serif;font-size:11px;">
+        PATTERN: <span class="mono" style="color:var(--accent);">${escapeHtml(item.word.toUpperCase())}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        ${showToggle?`<button class="pill-btn" data-toggle-linklang>${pair.labelA} ↔ ${pair.labelB} • ${linkLang.toUpperCase()}</button>`:''}
+        <button class="pill-btn" data-tts-word>🔊</button>
+        <button class="pill-btn" data-save-card>💾 Save Card</button>
+        <button class="pill-btn" data-save-note-btn>📝 To Notes</button>
+        <div class="muted" style="font-size:0.8rem;font-weight:900;">SCORE: ${item.score.toFixed(2)}</div>
+      </div>
+    </div>
+    <p class="muted" style="margin:10px 0 0;font-size:0.92rem;line-height:1.5;">${escapeHtml(reasonLine)}</p>
+    <div class="tag-row" style="margin-top:10px;">
+      <span class="tag brand-lens" data-toggle-lens>${crowState.lensOpen?'ⓘ Hide Pattern Meaning':'ⓘ Pattern Meaning'}</span>
+    </div>
+    ${crowState.lensOpen&&gloss?`<div class="lensBox"><div class="muted" style="font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Lens</div><div style="font-weight:900;letter-spacing:0.6px;">${escapeHtml(patternName)}</div><div class="muted" style="margin-top:6px;line-height:1.55;">${escapeHtml(gloss.meaning)}</div><div class="muted" style="margin-top:8px;">Example: ${escapeHtml(gloss.example(seed,item.word))}</div></div>`:''}
+    ${anchorLine(item)}
+    ${buildLinksBlockHTML(linkLang||'en',item.word)}`;
+
+  div.querySelector('[data-tts-word]').addEventListener('click',()=>speak(item.word,getLangMode()));
+  const toggleLangBtn=div.querySelector('[data-toggle-linklang]');
+  if(toggleLangBtn) toggleLangBtn.addEventListener('click',()=>{const p=getCollabPair();if(!p)return;crowState.cardLinkLang=(crowState.cardLinkLang===p.a)?p.b:p.a;openSingleCard(item,{keepScroll:true});});
+  div.querySelector('[data-toggle-lens]').addEventListener('click',()=>{crowState.lensOpen=!crowState.lensOpen;openSingleCard(item,{keepScroll:true});});
+  div.querySelector('[data-save-card]').addEventListener('click',()=>{addCard({word:item.word,createdAt:new Date().toISOString(),source:crowState.inputWord||'',score:item.score,reason:reasonLine,langMode:getLangMode(),linkLang:linkLang||'en'});setStatus(t('savedCard'));setTimeout(()=>{if(crowState.allResults.length)setStatus(`Generated ${crowState.allResults.length} words • gen ${crowState.generation}`);},900);});
+  div.querySelector('[data-save-note-btn]').addEventListener('click',()=>{saveToNotes(item.word,`Word: ${item.word}\nPattern: ${reasonLine}\nScore: ${item.score.toFixed(2)}\nSearched from: ${crowState.inputWord}`);});
+  return div;
+}
+
+function openSingleCard(item,opts={}){
+  crowState.activeCardItem=item;
+  const mode=getLangMode(),pair=getCollabPair();
+  if(pair){if(!crowState.cardLinkLang)crowState.cardLinkLang=pair.a;}
+  else{crowState.cardLinkLang=mode==='es'?'es':mode==='fr'?'fr':mode==='de'?'de':mode==='zh'||mode==='yue'?mode:mode==='ja'?'ja':mode==='ko'?'ko':'en';}
+  $('cardsArea').innerHTML='';$('cardsArea').appendChild(buildCard(item));
+  $('synthesisBox').style.display='block';
+  $('synthesisText').textContent=`"${item.word}" • ${bestReason(item)}`;
+  if(!opts.keepScroll) setTimeout(()=>{const c=document.getElementById('scorecard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});},50);
+}
+
+async function renderWordButtons(batch){
+  $('wordListEl').innerHTML='';
+  const isLearnMode=learnModeOn;
+  const l2=getLearnL2();
+
+  for(const item of batch){
+    if(isLearnMode){
+      // Learning bubble: translate to L2
+      const bubble=document.createElement('div');
+      bubble.className='learnBubble';
+      bubble.innerHTML=`<div class="l2word" style="color:var(--text-dim);">…</div><div class="l1ref">${escapeHtml(item.word)}</div><div class="bubble-actions"><button class="tts-mini">🔊 ${(LANG_LABEL[l2]||l2).toUpperCase()}</button><button class="tts-mini" data-en>🔊 ${(LANG_LABEL[getLearnL1()]||getLearnL1()).toUpperCase()}</button><button class="tts-mini" data-save>📝 Notes</button></div>`;
+      $('wordListEl').appendChild(bubble);
+
+      // Async translate
+      translateWord(item.word,getLearnL1(),l2).then(translated=>{
+        if(translated){
+          bubble.querySelector('.l2word').textContent=translated;
+          bubble.querySelector('.tts-mini').addEventListener('click',e=>{e.stopPropagation();speak(translated,l2);});
+        } else {
+          bubble.querySelector('.l2word').textContent=item.word;
+          bubble.querySelector('.tts-mini').addEventListener('click',e=>{e.stopPropagation();speak(item.word,l2);});
+        }
+      });
+      bubble.querySelector('[data-en]').addEventListener('click',e=>{e.stopPropagation();speak(item.word,getLearnL1());});
+      bubble.querySelector('[data-save]').addEventListener('click',e=>{e.stopPropagation();const l2txt=bubble.querySelector('.l2word').textContent;saveToNotes(l2txt,`${l2txt} (${item.word})\n\nFrom search: ${crowState.inputWord}`);});
+      bubble.addEventListener('click',()=>{crowState.lensOpen=false;openSingleCard(item);});
+    } else {
+      const btn=document.createElement('button');
+      btn.className='wordBtn';
+      const tts=document.createElement('button');
+      tts.className='tts-btn';tts.textContent='🔊';tts.title='Read aloud';
+      tts.addEventListener('click',e=>{e.stopPropagation();speak(item.word,getLangMode());});
+      btn.textContent=item.word;
+      btn.appendChild(tts);
+      btn.addEventListener('click',()=>{crowState.lensOpen=false;openSingleCard(item);});
+      $('wordListEl').appendChild(btn);
+    }
+  }
+}
+
+$('executeBtn').addEventListener('click',()=>executeStack());
+$('mainSearch').addEventListener('keydown',e=>{if(e.key==='Enter')executeStack();});
+
+async function executeStack(){
+  const rawWord=$('mainSearch').value.trim();
+  const word=normalizeWord(rawWord);
+  if(!word){setStatus('Enter a word and press RUN.');return;}
+  if(crowState.running)return;
+  window._lastSearchedWord=rawWord;
+
+  if(crowState.restricted&&isRestrictedInput(word)){setStatus('⚠ Input restricted. Try a different word.');setBadge('Restricted','bad');return;}
+  if(!crowState.restricted) showPolicyNudge();
+
+  crowState.running=true;$('executeBtn').disabled=true;
+  crowState={...crowState,inputWord:word,generation:0,used:new Set(),lastBatch:[],allResults:[],poolMeta:new Map(),seedCursor:0,activeCardItem:null,lensOpen:false};
+  $('cardsArea').innerHTML='';$('generatedSection').style.display='none';$('synthesisBox').style.display='none';
+  $('moreBtn').style.display='none';$('saveRunBtn').style.display='none';$('mainWordLinks').style.display='none';
+  setBadge('Checking…');setLoading(true);setStatus('Validating…');
+
+  const lang=getLangMode()==='es'?'es':'en';
+  const verdict=await dictCheck(word,lang);
+  if(verdict.uncertain)setBadge(t('badgeNetworkSoft'),'bad');
+  else if(verdict.ok)setBadge(t('badgeDictOk'),'good');
+  else setBadge(t('badgeDictSoftOk'),'bad');
+
+  setStatus(t('runningStack'));
+  const{batch}=await runOneGeneration([word]);
+  let finalBatch=filterHardBlocked(batch);
+  crowState.generation=1;crowState.lastBatch=finalBatch;crowState.allResults=[...finalBatch];
+  setLoading(false);
+  if(!finalBatch.length){setStatus('No results. Try another word.');crowState.running=false;$('executeBtn').disabled=false;return;}
+  await renderWordButtons(finalBatch);
+  $('generatedSection').style.display='block';
+  $('moreBtn').style.display='';$('saveRunBtn').style.display='';
+  setStatus(t('readyTap',word));renderMainWordLinks();
+  crowState.running=false;$('executeBtn').disabled=false;
+}
+
+async function runMore(){
+  if(crowState.running||!crowState.inputWord)return;
+  crowState.running=true;$('moreBtn').disabled=true;setLoading(true);setStatus(t('expanding'));
+  const seeds=crowState.lastBatch.slice(0,5).map(x=>x.word);if(!seeds.length)seeds.push(crowState.inputWord);
+  const{batch,novelty}=await runOneGeneration(seeds);
+  let finalBatch=filterHardBlocked(batch);
+  crowState.generation++;crowState.lastBatch=finalBatch;crowState.allResults=[...crowState.allResults,...finalBatch];
+  setLoading(false);
+  if(!finalBatch.length||novelty<0.25){setStatus(t('stopPoint'));$('moreBtn').disabled=false;crowState.running=false;return;}
+  await renderWordButtons([...crowState.allResults]);
+  setStatus(t('expandedTap',crowState.inputWord));$('moreBtn').disabled=false;crowState.running=false;
+}
+
+function clearStack(){
+  crowState={...crowState,inputWord:'',generation:0,used:new Set(),lastBatch:[],allResults:[],poolMeta:new Map(),seedCursor:0,activeCardItem:null,lensOpen:false};
+  $('mainSearch').value='';$('cardsArea').innerHTML='';$('wordListEl').innerHTML='';
+  $('generatedSection').style.display='none';$('synthesisBox').style.display='none';$('mainWordLinks').style.display='none';
+  $('moreBtn').style.display='none';$('saveRunBtn').style.display='none';
+  setBadge('Awaiting…');setStatus('Enter a word and press RUN.');
+}
+
+function saveCurrentRun(){
+  if(!crowState.inputWord||!crowState.allResults.length){toast('NOTHING TO SAVE');return;}
+  addRun({word:crowState.inputWord,generation:crowState.generation,createdAt:new Date().toISOString(),langMode:getLangMode(),words:crowState.allResults.map(x=>x.word)});
+  setStatus(t('saved'));toast('RUN SAVED ✓');
+  setTimeout(()=>{if(crowState.allResults.length)setStatus(`Generated ${crowState.allResults.length} words • gen ${crowState.generation}`);},1000);
+}
+
+$('langMode').addEventListener('change',()=>{if(crowState.inputWord)executeStack();});
+
+// ═══════════════════════════════════════════
+//  SENTENCE LAB
+// ═══════════════════════════════════════════
+const PRACTICE_KEY='bc_practice_cards';
+function loadPracticeCards(){try{return JSON.parse(localStorage.getItem(PRACTICE_KEY)||'[]');}catch(e){return[];}}
+function savePracticeCards(cards){localStorage.setItem(PRACTICE_KEY,JSON.stringify(cards.slice(0,200)));}
+function addPracticeCard(card){const cards=loadPracticeCards();if(!cards.find(c=>c.l2===card.l2)){cards.unshift(card);savePracticeCards(cards);}renderPracticeCards();}
+
+function renderPracticeCards(){
+  const cards=loadPracticeCards();
+  const sec=$('practiceSection');
+  const container=$('practiceCards');
+  if(!cards.length){if(sec)sec.style.display='none';return;}
+  if(sec)sec.style.display='block';
+  container.innerHTML='';
+  cards.forEach((c,i)=>{
+    const div=document.createElement('div');
+    div.className='practiceCard';
+    div.innerHTML=`<div class="pc-front">${escapeHtml(c.l2)} <button style="background:none;border:none;font-size:12px;cursor:pointer;padding:0 0 0 6px;color:var(--text-dim);" onclick="event.stopPropagation();speak('${escapeHtml(c.l2)}','${escapeHtml(c.l2lang||getLearnL2())}')">🔊</button></div><div class="pc-back">${escapeHtml(c.l1)} ${c.roman?'· '+escapeHtml(c.roman):''}</div>`;
+    div.addEventListener('click',()=>div.classList.toggle('flipped'));
+    container.appendChild(div);
+  });
+}
+
+$('clearPracticeBtn')?.addEventListener('click',()=>{localStorage.removeItem(PRACTICE_KEY);renderPracticeCards();toast('PRACTICE CARDS CLEARED');});
+
+// Tatoeba sentence fetch
+async function fetchTatoebaSentences(word,fromLang,toLang){
+  const langMap={en:'eng',es:'spa',fr:'fra',de:'deu',zh:'cmn',yue:'yue',ja:'jpn',ko:'kor'};
+  const from=langMap[fromLang]||'eng';
+  const to=langMap[toLang]||'cmn';
+  try{
+    const url=`https://tatoeba.org/en/api_v0/search?query=${encodeURIComponent(word)}&from=${from}&to=${to}&limit=5`;
+    const res=await fetch(url);
+    if(!res.ok)return null;
+    const data=await res.json();
+    return data.results||null;
+  }catch(e){return null;}
+}
+
+// Build sentences from template if Tatoeba fails
+function buildTemplateSentences(word,translatedWord,l2){
+  const templates=[
+    {l2:`${translatedWord}是一个有趣的概念。`,roman:'... shì yīgè yǒuqù de gàiniàn.',en:`${word} is an interesting concept.`},
+    {l2:`我喜欢${translatedWord}。`,roman:'Wǒ xǐhuān ...',en:`I like ${word}.`},
+    {l2:`${translatedWord}很重要。`,roman:'... hěn zhòngyào.',en:`${word} is very important.`},
+  ];
+  if(l2==='es')return[
+    {l2:`${translatedWord} es un concepto interesante.`,en:`${word} is an interesting concept.`},
+    {l2:`Me gusta ${translatedWord}.`,en:`I like ${word}.`},
+    {l2:`${translatedWord} es muy importante.`,en:`${word} is very important.`},
+  ];
+  if(l2==='fr')return[
+    {l2:`${translatedWord} est un concept intéressant.`,en:`${word} is an interesting concept.`},
+    {l2:`J'aime ${translatedWord}.`,en:`I like ${word}.`},
+  ];
+  if(l2==='de')return[
+    {l2:`${translatedWord} ist ein interessantes Konzept.`,en:`${word} is an interesting concept.`},
+    {l2:`Ich mag ${translatedWord}.`,en:`I like ${word}.`},
+  ];
+  return templates;
+}
+
+function buildWordTapHandler(wordText,lang){
+  return function(e){
+    e.stopPropagation();
+    const existing=$('sentResults').querySelector('.miniCard');
+    if(existing) existing.remove();
+    const mc=document.createElement('div');
+    mc.className='miniCard';
+    mc.innerHTML=`<div class="mc-word">${escapeHtml(wordText)}</div><div class="mc-roman" id="mc-roman-${Date.now()}">…</div><div class="mc-def">Fetching definition…</div><div class="mc-actions"><button class="tts-mini" onclick="speak('${escapeHtml(wordText)}','${lang}')">🔊 Hear it</button><button class="tts-mini" data-add-practice>📇 Add Practice Card</button><button class="tts-mini" data-add-note>📝 To Notes</button></div>`;
+    e.currentTarget.parentElement.after(mc);
+
+    // Async translate to L1 for definition
+    translateWord(wordText,lang,getLearnL1()).then(def=>{
+      mc.querySelector('.mc-def').textContent=def||'(Translation unavailable)';
+    });
+    mc.querySelector('.mc-roman').textContent='';
+
+    mc.querySelector('[data-add-practice]').addEventListener('click',()=>{
+      const def=mc.querySelector('.mc-def').textContent;
+      addPracticeCard({l2:wordText,l1:def,l2lang:lang,createdAt:new Date().toISOString()});
+      toast('PRACTICE CARD ADDED ✓');
+    });
+    mc.querySelector('[data-add-note]').addEventListener('click',()=>{
+      const def=mc.querySelector('.mc-def').textContent;
+      saveToNotes(wordText,`${wordText}\n\n${def}\n\nLang: ${lang}`);
+    });
+  };
+}
+
+function renderSentenceCard(sentObj,l2,l1){
+  const div=document.createElement('div');
+  div.className='sentCard';
+  const l2Text=sentObj.l2||sentObj.text||'';
+  const enText=sentObj.en||sentObj.translation||'';
+  const roman=sentObj.roman||'';
+
+  // Make each word tappable
+  const words=l2Text.split(/(\s+|(?=[，。！？、\s])|(?<=[，。！？、\s]))/);
+  const tappableHtml=words.map(w=>{
+    const clean=w.trim();
+    if(!clean||/^[\s，。！？、,.!?]+$/.test(clean)) return escapeHtml(w);
+    return `<span class="sentWord" data-word="${escapeHtml(clean)}">${escapeHtml(w)}</span>`;
+  }).join('');
+
+  div.innerHTML=`
+    <div class="sent-l2">${tappableHtml}</div>
+    ${roman?`<div class="sent-roman">${escapeHtml(roman)}</div>`:''}
+    <div class="sent-en">${escapeHtml(enText)}</div>
+    <div class="sent-actions">
+      <button class="tts-mini" data-tts-sent data-text="${escapeHtml(l2Text)}" data-lang="${l2}">🔊 Hear sentence</button>
+      <button class="tts-mini" data-save-sent>📝 Save to Notes</button>
+    </div>`;
+
+  div.querySelectorAll('.sentWord').forEach(el=>{
+    el.addEventListener('click',buildWordTapHandler(el.getAttribute('data-word'),l2));
+  });
+  div.querySelector('[data-tts-sent]').addEventListener('click',function(){speak(this.getAttribute('data-text'),this.getAttribute('data-lang'));});
+  div.querySelector('[data-save-sent]').addEventListener('click',()=>{saveToNotes(`Sentence: ${l2Text}`,`${l2Text}\n${roman?roman+'\n':''}${enText}`);});
+  return div;
+}
+
+$('sentSearch').addEventListener('keydown',e=>{if(e.key==='Enter')runSentenceLab();});
+
+async function runSentenceLab(){
+  if(!learnModeOn){$('sentStatus').textContent='Enable Learning Mode in the WORDS tab first.';return;}
+  const word=$('sentSearch').value.trim();
+  if(!word){$('sentStatus').textContent='Enter a word to find sentences.';return;}
+
+  const l1=getLearnL1(),l2=getLearnL2();
+  $('sentStatus').textContent='Searching Tatoeba…';$('sentStatus').classList.add('status-loading');
+  $('sentResults').innerHTML='';
+  $('sentRunBtn').disabled=true;
+
+  let sentences=await fetchTatoebaSentences(word,l1,l2);
+
+  if(sentences&&sentences.length){
+    $('sentStatus').textContent=`Found ${sentences.length} sentence${sentences.length>1?'s':''} · tap any word for its card`;
+    $('sentStatus').classList.remove('status-loading');
+    sentences.slice(0,5).forEach(s=>{
+      const l2text=s.translations?.[0]?.[0]?.text||'';
+      const l1text=s.text||'';
+      if(!l2text)return;
+      $('sentResults').appendChild(renderSentenceCard({l2:l2text,en:l1text},l2,l1));
+    });
+  } else {
+    // Fallback: translate + template
+    $('sentStatus').textContent='Generating from templates…';
+    const translated=await translateWord(word,l1,l2);
+    if(translated){
+      const sents=buildTemplateSentences(word,translated,l2);
+      $('sentStatus').textContent=`${sents.length} template sentences · tap any word for its card`;
+      sents.forEach(s=>$('sentResults').appendChild(renderSentenceCard(s,l2,l1)));
+    } else {
+      $('sentStatus').textContent='Could not generate sentences. Try a simpler word.';
+    }
+    $('sentStatus').classList.remove('status-loading');
+  }
+
+  $('sentRunBtn').disabled=false;
+  renderPracticeCards();
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+loadTheme();
+loadVizConfig();
+render();
+renderAllNotes();
+renderPracticeCards();
+loadLearnMode();
+
+crowState.redPill=getRedPill();
+refreshRedPillBtn();
+crowState.restricted=document.getElementById('restrictToggle').checked;
+
+// Preload TTS voices
+if('speechSynthesis' in window){
+  window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+  window.speechSynthesis.getVoices();
+}
+</script>
+</body>
+</html>
