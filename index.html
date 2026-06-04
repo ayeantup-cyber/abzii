@@ -302,6 +302,49 @@ a.tag:hover{background:rgba(0,242,255,0.15);border-color:var(--accent);color:var
 .siteFooter a:hover{opacity:0.8;}
 .footer-policy{font-size:8px;letter-spacing:2px;opacity:0.2;}
 
+/* EDIT MODE INDICATOR */
+.editingBanner{display:none;align-items:center;gap:10px;background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;}
+.editingBanner.show{display:flex;}
+.editingBanner .eb-label{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--gold);flex:1;}
+.editingBanner .eb-sub{font-size:10px;color:var(--text-dim);}
+
+/* DESELECT CLEAR BTN — prominent after export */
+.deselClearBtn{display:none;align-items:center;gap:8px;background:rgba(0,242,255,0.06);border:1px solid var(--accent);border-radius:10px;padding:9px 14px;margin-bottom:10px;cursor:pointer;}
+.deselClearBtn.show{display:flex;}
+.deselClearBtn span{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--accent);flex:1;}
+
+/* PLAYLIST */
+.playlistWrap{margin-top:14px;}
+.playlistHeader{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--text-dim);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.playlistHeader span{font-size:8px;color:var(--text-dim);opacity:0.5;}
+.trackList{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;}
+.trackItem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-sub);cursor:pointer;transition:all 0.2s;}
+.trackItem:hover{border-color:var(--accent);}
+.trackItem.active-track{border-color:var(--accent);background:rgba(0,242,255,0.07);box-shadow:0 0 10px rgba(0,242,255,0.08);}
+.trackNum{font-family:'Orbitron',sans-serif;font-size:9px;color:var(--text-dim);min-width:18px;text-align:right;}
+.trackName{flex:1;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.trackItem.active-track .trackName{color:var(--accent);}
+.trackDel{background:none;border:none;padding:0 2px;color:var(--text-dim);font-size:13px;cursor:pointer;opacity:0.4;transition:opacity 0.2s;}
+.trackDel:hover{opacity:1;color:var(--danger);transform:none;filter:none;}
+.playlistEmpty{font-size:11px;color:var(--text-dim);text-align:center;padding:16px 0;opacity:0.4;font-family:'Orbitron',sans-serif;letter-spacing:2px;font-size:9px;}
+.playlistControls{display:flex;gap:6px;margin-top:10px;align-items:center;}
+.playlistControls .pl-nav{padding:7px 11px;font-size:13px;}
+
+/* SESSION MODE — beat + lyrics side by side */
+.sessionBanner{display:none;align-items:center;gap:10px;background:rgba(157,95,255,0.05);border:1px solid rgba(157,95,255,0.2);border-radius:10px;padding:9px 14px;margin-bottom:10px;}
+.sessionBanner.show{display:flex;}
+.sessionBanner .sb-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--purple);flex:1;}
+.sessionBanner button{background:rgba(157,95,255,0.1);border:1px solid rgba(157,95,255,0.3);color:var(--purple);font-size:10px;padding:5px 10px;}
+.sessionBanner button:hover{background:rgba(157,95,255,0.2);transform:none;}
+.sessionLayout{display:none;gap:12px;}
+.sessionLayout.show{display:grid;grid-template-columns:1fr;}
+@media(min-width:640px){.sessionLayout.show{grid-template-columns:1fr 1fr;}}
+.sessionAudio{min-width:0;}
+.sessionNotes{min-width:0;}
+.lyricTextarea{height:260px;font-size:14px;line-height:1.7;letter-spacing:0.5px;border-color:rgba(157,95,255,0.25)!important;}
+.lyricTextarea:focus{border-color:rgba(157,95,255,0.5)!important;box-shadow:0 0 0 2px rgba(157,95,255,0.15)!important;}
+.bpm-badge{display:inline-block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;padding:3px 10px;border:1px solid rgba(157,95,255,0.3);border-radius:20px;color:var(--purple);background:rgba(157,95,255,0.07);}
+
 /* ANIMATIONS */
 @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:0.4}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -418,16 +461,22 @@ a.tag:hover{background:rgba(0,242,255,0.15);border-color:var(--accent);color:var
 <!-- ═══════════════ AUDIO PANEL ═══════════════ -->
 <div class="panel active" id="panel-audio">
 <div class="container">
-  <div class="card audioCard">
+
+  <div class="card audioCard" id="mainAudioCard">
     <canvas id="audioCanvas"></canvas>
     <div class="loopRing" id="loopRing"></div>
     <div class="audioCardInner">
-      <div class="audioLabel">▸ AUDIO INTERFACE</div>
-      <input type="file" id="fileInput" accept="audio/*"/>
-      <div id="trackName" style="font-size:11px;color:var(--accent);margin-top:8px;letter-spacing:1px;min-height:16px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div class="audioLabel" style="margin-bottom:0;">▸ AUDIO INTERFACE</div>
+        <button class="ghost" id="sessionModeBtn" onclick="toggleSessionMode()" style="font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;padding:5px 10px;border-color:rgba(157,95,255,0.35);color:var(--purple);">◈ SESSION MODE</button>
+      </div>
+      <input type="file" id="fileInput" accept="audio/*" multiple/>
+      <div id="trackName" style="font-size:11px;color:var(--accent);margin-top:8px;letter-spacing:1px;min-height:16px;">NO TRACK LOADED</div>
       <div class="controls">
         <button onclick="playAudio()">▶ Play</button>
         <button onclick="pauseAudio()">⏸ Pause</button>
+        <button class="ghost" onclick="prevTrack()">⏮ Prev</button>
+        <button class="ghost" onclick="nextTrack()">⏭ Next</button>
         <button class="ghost" onclick="toggleLoop()" id="loopBtn">🔁 Loop</button>
         <button class="ghost" onclick="openFullViz()">◈ Full Viz</button>
       </div>
@@ -437,6 +486,34 @@ a.tag:hover{background:rgba(0,242,255,0.15);border-color:var(--accent);color:var
       <div class="timeLabel" id="timeLabel">0:00 / 0:00</div>
     </div>
   </div>
+
+  <!-- PLAYLIST -->
+  <div class="card" style="padding:14px;" id="playlistCard">
+    <div class="playlistHeader">
+      PLAYLIST
+      <span id="plCount">0 / 10</span>
+    </div>
+    <div class="trackList" id="trackList">
+      <div class="playlistEmpty" id="playlistEmpty">ADD UP TO 10 AUDIO FILES ABOVE</div>
+    </div>
+  </div>
+
+  <!-- SESSION MODE PAD (shown below when session active) -->
+  <div id="sessionPad" style="display:none;">
+    <div class="card" style="border-color:rgba(157,95,255,0.25);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--purple);">◈ LYRICS / SESSION PAD</div>
+        <div class="bpm-badge" id="bpmBadge">SESSION ACTIVE</div>
+      </div>
+      <input type="text" id="sessionNoteTitle" placeholder="Track / session title…" style="margin-top:0;margin-bottom:6px;border-color:rgba(157,95,255,0.2);"/>
+      <textarea id="sessionNoteText" class="lyricTextarea" placeholder="Write your lyrics, bars, hooks, concepts…&#10;&#10;The beat is playing. Get into it."></textarea>
+      <div class="controls" style="margin-top:8px;">
+        <button onclick="saveSessionNote()" style="background:var(--purple);color:#fff;">💾 Save to Notes</button>
+        <button class="ghost" onclick="clearSessionPad()">✕ Clear Pad</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -576,18 +653,33 @@ a.tag:hover{background:rgba(0,242,255,0.15);border-color:var(--accent);color:var
 <div class="panel" id="panel-notes">
 <div class="container">
   <div class="card">
-    <div class="sectionLabel">▸ NEW NOTE</div>
+    <!-- EDIT MODE INDICATOR -->
+    <div class="editingBanner" id="editingBanner">
+      <div class="eb-label">✏ EDITING NOTE</div>
+      <div class="eb-sub" id="editingBannerSub"></div>
+      <button class="ghost" onclick="cancelEdit()" style="font-size:10px;padding:5px 10px;border-color:rgba(255,209,102,0.3);color:var(--gold);">✕ Cancel</button>
+    </div>
+    <div class="sectionLabel" id="noteEditorLabel">▸ NEW NOTE</div>
     <input type="text" id="noteTitle" placeholder="Note title…"/>
     <textarea id="noteText" placeholder="Write your thoughts, lyrics, ideas… or drop words from the WORDS tab here."></textarea>
     <div class="controls" style="margin-top:12px;">
-      <button onclick="saveNote()">💾 Save Note</button>
+      <button onclick="saveNote()" id="saveNoteBtn">💾 Save Note</button>
+      <button class="ghost" onclick="cancelEdit()" id="cancelEditBtn" style="display:none;">✕ Cancel Edit</button>
     </div>
   </div>
+
   <div class="selectToggleRow">
     <button class="ghost" id="selectToggleBtn" onclick="toggleSelectMode()">☐ Select</button>
     <button class="ghost" id="selectAllBtn" onclick="selectAll()" style="display:none">Select All</button>
     <button class="ghost" id="deselectAllBtn" onclick="deselectAll()" style="display:none">Deselect All</button>
   </div>
+
+  <!-- DESELECT CLEAR BANNER — visible and prominent after export/action -->
+  <div class="deselClearBtn" id="deselClearBanner" onclick="exitSelectMode()">
+    <span>✓ DONE — TAP TO DESELECT ALL &amp; EXIT</span>
+    <button onclick="exitSelectMode()" style="font-size:10px;padding:5px 12px;background:rgba(0,242,255,0.12);border:1px solid var(--accent);color:var(--accent);">✕ CLEAR SELECTION</button>
+  </div>
+
   <div class="actionBar" id="actionBar">
     <div class="selCount" id="selCount">0 selected</div>
     <button class="ghost" onclick="openExportModal(false)">⬇ Export HTML</button>
@@ -805,11 +897,16 @@ function speak(text,lang){
 }
 
 // ═══════════════════════════════════════════
-//  WEB AUDIO
+//  WEB AUDIO + PLAYLIST
 // ═══════════════════════════════════════════
 let audioCtx=null,analyser=null,source=null;
 const player=new Audio();
 let looping=false;
+
+// Playlist state
+let playlist=[]; // [{name, url}]
+let currentTrackIdx=-1;
+const MAX_TRACKS=10;
 
 function initAudioContext(){
   if(audioCtx) return;
@@ -821,29 +918,128 @@ function initAudioContext(){
   analyser.connect(audioCtx.destination);
 }
 
-document.getElementById('fileInput').addEventListener('change',function(){
-  if(!this.files[0]) return;
+function loadTrack(idx,autoplay){
+  if(idx<0||idx>=playlist.length) return;
+  currentTrackIdx=idx;
   initAudioContext();
   if(audioCtx.state==='suspended') audioCtx.resume();
-  player.src=URL.createObjectURL(this.files[0]);
-  document.getElementById('trackName').textContent='▸ '+this.files[0].name.replace(/\.[^/.]+$/,'').toUpperCase();
-  player.play();
+  player.src=playlist[idx].url;
+  const name=playlist[idx].name;
+  // Update both track name displays
+  ['trackName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='▸ '+name.toUpperCase();});
   if('mediaSession' in navigator){
-    navigator.mediaSession.metadata=new MediaMetadata({title:this.files[0].name.replace(/\.[^/.]+$/,''),artist:'BLU-CO',album:'SOVEREIGN'});
+    navigator.mediaSession.metadata=new MediaMetadata({title:name,artist:'BLU-CO',album:'SOVEREIGN'});
     navigator.mediaSession.setActionHandler('play',()=>player.play());
     navigator.mediaSession.setActionHandler('pause',()=>player.pause());
+    navigator.mediaSession.setActionHandler('previoustrack',prevTrack);
+    navigator.mediaSession.setActionHandler('nexttrack',nextTrack);
   }
+  if(autoplay!==false) player.play();
+  renderPlaylist();
+  // Update session badge
+  const badge=document.getElementById('bpmBadge');
+  if(badge) badge.textContent='▸ '+name.slice(0,22).toUpperCase();
+}
+
+function addFilesToPlaylist(files){
+  const arr=Array.from(files);
+  for(const f of arr){
+    if(playlist.length>=MAX_TRACKS){toast('PLAYLIST FULL (10 MAX)');break;}
+    // Avoid duplicates by name
+    if(playlist.some(t=>t.name===f.name.replace(/\.[^/.]+$/,''))) continue;
+    playlist.push({name:f.name.replace(/\.[^/.]+$/,''),url:URL.createObjectURL(f)});
+  }
+  renderPlaylist();
+  // Auto-load first track if nothing loaded yet
+  if(currentTrackIdx===-1&&playlist.length>0) loadTrack(0,false);
+}
+
+function renderPlaylist(){
+  const list=document.getElementById('trackList');
+  const empty=document.getElementById('playlistEmpty');
+  const countEl=document.getElementById('plCount');
+  if(!list) return;
+  list.innerHTML='';
+  if(countEl) countEl.textContent=`${playlist.length} / ${MAX_TRACKS}`;
+  if(!playlist.length){
+    const e=document.createElement('div');e.className='playlistEmpty';e.textContent='ADD UP TO 10 AUDIO FILES ABOVE';
+    list.appendChild(e);return;
+  }
+  playlist.forEach((t,i)=>{
+    const item=document.createElement('div');
+    item.className='trackItem'+(i===currentTrackIdx?' active-track':'');
+    item.innerHTML=`<span class="trackNum">${i+1}</span><span class="trackName">${escH(t.name)}</span><button class="trackDel" title="Remove" onclick="removeTrack(${i},event)">✕</button>`;
+    item.addEventListener('click',()=>loadTrack(i,true));
+    list.appendChild(item);
+  });
+}
+
+function removeTrack(idx,e){
+  e.stopPropagation();
+  if(idx===currentTrackIdx){player.pause();player.src='';currentTrackIdx=-1;document.getElementById('trackName').textContent='NO TRACK LOADED';}
+  else if(idx<currentTrackIdx) currentTrackIdx--;
+  URL.revokeObjectURL(playlist[idx].url);
+  playlist.splice(idx,1);
+  renderPlaylist();
+  toast('TRACK REMOVED');
+}
+
+function prevTrack(){
+  if(!playlist.length) return;
+  const prev=(currentTrackIdx-1+playlist.length)%playlist.length;
+  loadTrack(prev,true);
+}
+function nextTrack(){
+  if(!playlist.length) return;
+  const next=(currentTrackIdx+1)%playlist.length;
+  loadTrack(next,true);
+}
+
+player.addEventListener('ended',()=>{
+  if(looping) return; // player.loop handles it
+  // Auto-advance
+  if(playlist.length>1) nextTrack();
 });
 
-function playAudio(){if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();player.play();}
+document.getElementById('fileInput').addEventListener('change',function(){
+  if(!this.files.length) return;
+  addFilesToPlaylist(this.files);
+  this.value=''; // reset so same files can be re-added after clear
+});
+
+function playAudio(){if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();if(currentTrackIdx===-1&&playlist.length)loadTrack(0,true);else player.play();}
 function pauseAudio(){player.pause();}
 function toggleLoop(){looping=!looping;player.loop=looping;document.getElementById('loopRing').classList.toggle('active',looping);document.getElementById('loopBtn').classList.toggle('active-btn',looping);}
 
 const seekBar=document.getElementById('seekBar');
 const timeLabel=document.getElementById('timeLabel');
-player.addEventListener('timeupdate',()=>{seekBar.max=player.duration||0;seekBar.value=player.currentTime;timeLabel.textContent=fmtTime(player.currentTime)+' / '+(player.duration?fmtTime(player.duration):'0:00');});
+player.addEventListener('timeupdate',()=>{
+  seekBar.max=player.duration||0;seekBar.value=player.currentTime;
+  timeLabel.textContent=fmtTime(player.currentTime)+' / '+(player.duration?fmtTime(player.duration):'0:00');
+});
 seekBar.addEventListener('input',()=>{player.currentTime=+seekBar.value;});
 function fmtTime(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
+
+// ═══════════════════════════════════════════
+//  SESSION MODE
+// ═══════════════════════════════════════════
+let sessionModeOn=false;
+function toggleSessionMode(){
+  sessionModeOn=!sessionModeOn;
+  const pad=document.getElementById('sessionPad');
+  const btn=document.getElementById('sessionModeBtn');
+  if(pad) pad.style.display=sessionModeOn?'block':'none';
+  if(btn){btn.textContent=sessionModeOn?'✕ EXIT SESSION':'◈ SESSION MODE';btn.style.borderColor=sessionModeOn?'rgba(157,95,255,0.6)':'rgba(157,95,255,0.35)';btn.style.background=sessionModeOn?'rgba(157,95,255,0.12)':'transparent';}
+  if(sessionModeOn) toast('SESSION MODE ON — WRITE YOUR BARS');
+}
+function saveSessionNote(){
+  const title=document.getElementById('sessionNoteTitle').value.trim()||('Session — '+new Date().toLocaleDateString());
+  const text=document.getElementById('sessionNoteText').value.trim();
+  if(!text){toast('NOTHING TO SAVE');return;}
+  saveToNotes(title,text);
+  toast('SESSION SAVED TO NOTES ✓');
+}
+function clearSessionPad(){document.getElementById('sessionNoteTitle').value='';document.getElementById('sessionNoteText').value='';toast('PAD CLEARED');}
 
 // ═══════════════════════════════════════════
 //  VISUALIZER CONFIG
@@ -992,6 +1188,7 @@ requestAnimationFrame(vizLoop);
 // ═══════════════════════════════════════════
 const NOTES_KEY='bc_notes';
 let selectModeOn=false,selectedIds=new Set(),exportEncrypt=false;
+let editingNoteId=null; // null = new note, otherwise = ID of note being edited
 
 function getNotes(){try{return JSON.parse(localStorage.getItem(NOTES_KEY)||'[]');}catch(e){return[];}}
 function setNotes(n){localStorage.setItem(NOTES_KEY,JSON.stringify(n));}
@@ -1001,11 +1198,33 @@ function saveNote(){
   const text=document.getElementById('noteText').value.trim();
   if(!title&&!text){toast('NOTHING TO SAVE');return;}
   const notes=getNotes();
+
+  if(editingNoteId!==null){
+    // UPDATE existing note
+    const idx=notes.findIndex(n=>n.id===editingNoteId);
+    if(idx>-1){
+      notes[idx]={...notes[idx],title,text,updated:new Date().toISOString()};
+      setNotes(notes);render();toast('NOTE UPDATED ✓');
+      clearEditor();return;
+    }
+  }
+  // CREATE new note
   notes.unshift({id:Date.now(),title,text,star:false,created:new Date().toISOString()});
   setNotes(notes);render();toast('NOTE SAVED ✓');
+  clearEditor();
+}
+
+function clearEditor(){
+  editingNoteId=null;
   document.getElementById('noteTitle').value='';
   document.getElementById('noteText').value='';
+  document.getElementById('editingBanner').classList.remove('show');
+  document.getElementById('noteEditorLabel').textContent='▸ NEW NOTE';
+  document.getElementById('saveNoteBtn').textContent='💾 Save Note';
+  document.getElementById('cancelEditBtn').style.display='none';
 }
+
+function cancelEdit(){clearEditor();toast('EDIT CANCELLED');}
 
 function saveToNotes(title,text){
   const notes=getNotes();
@@ -1013,13 +1232,65 @@ function saveToNotes(title,text){
   setNotes(notes);render();toast('SAVED TO NOTES ✓');
 }
 
-function loadNote(n){if(selectModeOn)return;document.getElementById('noteTitle').value=n.title||'';document.getElementById('noteText').value=n.text||'';switchTab('notes');document.getElementById('noteTitle').focus();}
+function loadNote(n){
+  if(selectModeOn) return;
+  editingNoteId=n.id;
+  document.getElementById('noteTitle').value=n.title||'';
+  document.getElementById('noteText').value=n.text||'';
+  // Show edit banner
+  const banner=document.getElementById('editingBanner');
+  banner.classList.add('show');
+  document.getElementById('editingBannerSub').textContent=(n.title||'Untitled').slice(0,40);
+  document.getElementById('noteEditorLabel').textContent='✏ EDITING NOTE';
+  document.getElementById('saveNoteBtn').textContent='💾 Update Note';
+  document.getElementById('cancelEditBtn').style.display='';
+  // Scroll to top of notes panel and focus
+  switchTab('notes');
+  setTimeout(()=>{document.getElementById('noteText').focus();},80);
+}
+
 function toggleStar(id,e){e.stopPropagation();const notes=getNotes().map(n=>n.id===id?{...n,star:!n.star}:n);setNotes(notes);render();}
-function toggleSelectMode(){selectModeOn=!selectModeOn;selectedIds=new Set();document.getElementById('selectToggleBtn').textContent=selectModeOn?'☑ Select':'☐ Select';document.getElementById('selectAllBtn').style.display=selectModeOn?'':'none';document.getElementById('deselectAllBtn').style.display=selectModeOn?'':'none';document.getElementById('actionBar').classList.toggle('visible',selectModeOn);render();}
-function toggleSelect(id,e){e.stopPropagation();selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);document.getElementById('selCount').textContent=selectedIds.size+' selected';render();}
+
+function toggleSelectMode(){
+  selectModeOn=!selectModeOn;
+  selectedIds=new Set();
+  document.getElementById('selectToggleBtn').textContent=selectModeOn?'☑ Select':'☐ Select';
+  document.getElementById('selectAllBtn').style.display=selectModeOn?'':'none';
+  document.getElementById('deselectAllBtn').style.display=selectModeOn?'':'none';
+  document.getElementById('actionBar').classList.toggle('visible',selectModeOn);
+  document.getElementById('deselClearBanner').classList.remove('show');
+  render();
+}
+
+function exitSelectMode(){
+  selectModeOn=false;
+  selectedIds=new Set();
+  document.getElementById('selectToggleBtn').textContent='☐ Select';
+  document.getElementById('selectAllBtn').style.display='none';
+  document.getElementById('deselectAllBtn').style.display='none';
+  document.getElementById('actionBar').classList.remove('visible');
+  document.getElementById('deselClearBanner').classList.remove('show');
+  document.getElementById('selCount').textContent='0 selected';
+  render();
+}
+
+function toggleSelect(id,e){
+  e.stopPropagation();
+  selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);
+  document.getElementById('selCount').textContent=selectedIds.size+' selected';
+  render();
+}
 function selectAll(){getNotes().forEach(n=>selectedIds.add(n.id));document.getElementById('selCount').textContent=selectedIds.size+' selected';render();}
 function deselectAll(){selectedIds=new Set();document.getElementById('selCount').textContent='0 selected';render();}
-function deleteSelected(){if(!selectedIds.size){toast('NOTHING SELECTED');return;}setNotes(getNotes().filter(n=>!selectedIds.has(n.id)));selectedIds=new Set();render();toast('DELETED ✓');document.getElementById('actionBar').classList.remove('visible');selectModeOn=false;document.getElementById('selectToggleBtn').textContent='☐ Select';document.getElementById('selectAllBtn').style.display='none';document.getElementById('deselectAllBtn').style.display='none';}
+
+function deleteSelected(){
+  if(!selectedIds.size){toast('NOTHING SELECTED');return;}
+  setNotes(getNotes().filter(n=>!selectedIds.has(n.id)));
+  selectedIds=new Set();
+  render();
+  toast('DELETED ✓');
+  exitSelectMode();
+}
 
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
@@ -1048,7 +1319,12 @@ async function doExport(){
   const title=document.getElementById('exportFileName').value.trim()||'Blu-Co Notes';
   if(exportEncrypt){const pass=document.getElementById('encryptPass').value;const conf=document.getElementById('encryptPassConfirm').value;if(!pass){toast('PASSWORD REQUIRED');return;}if(pass!==conf){toast('PASSWORDS DO NOT MATCH');return;}downloadHTML(filename,await buildEncryptedFile(notesToExport,title,pass));}
   else downloadHTML(filename,buildExportFile(notesToExport,title));
-  closeExportModal();toast('EXPORTED ✓');
+  closeExportModal();
+  toast('EXPORTED ✓');
+  // Show the prominent deselect banner after export if in select mode
+  if(selectModeOn&&selectedIds.size){
+    document.getElementById('deselClearBanner').classList.add('show');
+  }
 }
 
 function render(){
@@ -1060,10 +1336,11 @@ function render(){
   if(selectModeOn) wrap.classList.add('selectMode');
   notes.forEach(n=>{
     const item=document.createElement('div');
-    item.className='noteItem'+(selectedIds.has(n.id)?' selected':'');
+    item.className='noteItem'+(selectedIds.has(n.id)?' selected':'')+(editingNoteId===n.id?' selected':'');
     const cb=document.createElement('input');cb.type='checkbox';cb.className='noteCheckbox';cb.checked=selectedIds.has(n.id);cb.addEventListener('click',e=>toggleSelect(n.id,e));
     const body=document.createElement('div');body.className='noteBody';
-    body.innerHTML=`<div class="noteTitle">${escH(n.title||'Untitled')}</div><div class="notePreview">${escH((n.text||'').slice(0,90))}</div><div class="noteDate">${n.created?new Date(n.created).toLocaleString():''}</div>`;
+    const dateStr=n.updated?'✏ '+new Date(n.updated).toLocaleString():(n.created?new Date(n.created).toLocaleString():'');
+    body.innerHTML=`<div class="noteTitle">${escH(n.title||'Untitled')}${editingNoteId===n.id?' <span style="font-size:9px;color:var(--gold);letter-spacing:1px;">✏ EDITING</span>':''}</div><div class="notePreview">${escH((n.text||'').slice(0,90))}</div><div class="noteDate">${dateStr}</div>`;
     const star=document.createElement('button');star.className='starBtn'+(n.star?' on':'');star.textContent='★';star.addEventListener('click',e=>toggleStar(n.id,e));
     item.addEventListener('click',()=>loadNote(n));
     item.appendChild(cb);item.appendChild(body);item.appendChild(star);
@@ -1071,6 +1348,9 @@ function render(){
   });
   list.appendChild(wrap);
 }
+
+// renderAllNotes alias for init
+function renderNotes(){render();}
 
 // ═══════════════════════════════════════════
 //  LEARNING MODE
@@ -1688,7 +1968,7 @@ async function runSentenceLab(){
 loadTheme();
 loadVizConfig();
 render();
-renderAllNotes();
+renderNotes();
 renderPracticeCards();
 loadLearnMode();
 
